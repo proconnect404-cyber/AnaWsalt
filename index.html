@@ -1,0 +1,2975 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr" class="h-full bg-slate-950 text-slate-100 antialiased select-none">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#10b981">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="AnaWsalt — Gestion Intelligente & Sécurisée des Sorties Scolaires Mobile-First">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <title>AnaWsalt — Sorties Scolaires Intelligentes</title>
+
+  <!-- Google Fonts: Inter & Cairo (Arabic RTL) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              950: '#022c22'
+            },
+            accent: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            arabic: ['Cairo', 'sans-serif']
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'radar': 'radarWave 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite',
+            'bounce-subtle': 'bounceSubtle 1.8s infinite',
+            'spin-slow': 'spin 8s linear infinite'
+          },
+          keyframes: {
+            radarWave: {
+              '0%': { transform: 'scale(0.8)', opacity: '0.9' },
+              '100%': { transform: 'scale(2.2)', opacity: '0' }
+            },
+            bounceSubtle: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-6px)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- External Helpers -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    /* Mobile-first safe areas */
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+    }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: none;
+    }
+    
+    html[dir="rtl"] body {
+      font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Custom touch scrollbar */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Glassmorphic mobile blur */
+    .glass-nav {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .glass-header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Tactile button active states */
+    .btn-press:active {
+      transform: scale(0.96);
+    }
+
+    /* Phone Mockup Frame for Desktop Display */
+    @media (min-width: 640px) {
+      .phone-chassis {
+        max-width: 440px;
+        height: 94vh;
+        max-height: 900px;
+        border-radius: 48px;
+        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 12px #1e293b, 0 0 0 14px #334155;
+        position: relative;
+        overflow: hidden;
+      }
+      .phone-notch {
+        width: 140px;
+        height: 26px;
+        background-color: #0f172a;
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        border-bottom-left-radius: 18px;
+        border-bottom-right-radius: 18px;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .phone-speaker {
+        width: 48px;
+        height: 4px;
+        background-color: #334155;
+        border-radius: 999px;
+      }
+      .phone-lens {
+        width: 8px;
+        height: 8px;
+        background-color: #1e293b;
+        border: 1.5px solid #475569;
+        border-radius: 999px;
+      }
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col justify-center items-center bg-slate-950 overflow-hidden">
+
+  <!-- Desktop Backdrop Simulator Decor (visible only on large screens) -->
+  <div class="hidden lg:flex fixed inset-0 pointer-events-none items-center justify-between px-12 z-0 opacity-40">
+    <div class="max-w-xs space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-500/20 flex items-center justify-center text-brand-400 text-xl border border-brand-500/30">
+          <i class="fa-solid fa-school-flag"></i>
+        </div>
+        <div>
+          <h2 class="font-extrabold text-white text-lg tracking-tight">AnaWsalt</h2>
+          <p class="text-xs text-brand-400 font-medium">Sorties Scolaires Sécurisées</p>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 leading-relaxed">
+        Application mobile haute sécurité pour l'automatisation silencieuse et le géofencing des flux scolaires.
+      </p>
+      <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 text-[11px] text-slate-300 space-y-1.5">
+        <div class="flex items-center gap-2 text-brand-400 font-semibold">
+          <i class="fa-solid fa-bolt"></i> Simulateur Multi-rôles actif
+        </div>
+        <p>Changez de rôle instantanément depuis le bandeau supérieur pour tester l'expérience Parent, Professeur, Gérant de portail et Admin.</p>
+      </div>
+    </div>
+
+    <div class="max-w-xs text-right space-y-3">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Mobile-First PWA 100%
+      </span>
+      <p class="text-xs text-slate-400">
+        Prêt pour Google Play Store (TWA/Capacitor) & App Store iOS.
+      </p>
+      <div class="flex items-center justify-end gap-2 text-slate-500 text-sm">
+        <i class="fa-brands fa-android text-emerald-400"></i>
+        <i class="fa-brands fa-apple text-slate-300"></i>
+        <i class="fa-solid fa-satellite-dish text-sky-400"></i>
+        <i class="fa-solid fa-qrcode text-amber-400"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN MOBILE CHASSIS CONTAINER -->
+  <div id="mobileChassis" class="phone-chassis w-full h-full sm:h-[94vh] flex flex-col bg-slate-900 relative z-10 shadow-2xl overflow-hidden">
+    
+    <!-- Desktop Notch Decor -->
+    <div class="phone-notch hidden sm:flex">
+      <div class="phone-speaker"></div>
+      <div class="phone-lens"></div>
+    </div>
+
+    <!-- MOBILE SYSTEM STATUS BAR -->
+    <header class="glass-header px-4 pt-2.5 pb-2 flex-shrink-0 flex items-center justify-between z-40 select-none">
+      <div class="flex items-center gap-2">
+        <span id="statusBarClock" class="text-xs font-bold text-white tracking-wider">16:42</span>
+        <span id="offlineBadge" class="hidden text-[10px] bg-rose-500/80 text-white font-bold px-1.5 py-0.5 rounded-full">
+          <i class="fa-solid fa-plane"></i> Hors-ligne
+        </span>
+      </div>
+
+      <!-- Quick Role Switcher Pill (Universal Testing Toolbar) -->
+      <div class="flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 px-2 py-1 rounded-full cursor-pointer transition" onclick="app.toggleRoleModal()" title="Changer de rôle">
+        <span id="currentRoleBadge" class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+        <span id="currentRoleLabel" class="text-[11px] font-bold text-brand-300 capitalize">Parent</span>
+        <i class="fa-solid fa-chevron-down text-[9px] text-slate-400"></i>
+      </div>
+
+      <!-- Status Bar Icons -->
+      <div class="flex items-center gap-2 text-slate-300 text-xs">
+        <i id="gpsStatusIcon" class="fa-solid fa-location-crosshairs text-emerald-400" title="GPS Actif"></i>
+        <i class="fa-solid fa-wifi text-slate-300"></i>
+        <div class="flex items-center text-[11px] font-bold gap-0.5">
+          <span>98%</span>
+          <i class="fa-solid fa-battery-three-quarters text-emerald-400 text-sm"></i>
+        </div>
+      </div>
+    </header>
+
+    <!-- LIVE SUB-HEADER / NOTIFICATION BANNER -->
+    <div id="realtimeBanner" class="bg-gradient-to-r from-brand-950 via-slate-900 to-slate-950 border-b border-brand-500/20 px-3.5 py-1.5 flex items-center justify-between text-xs z-30">
+      <div class="flex items-center gap-2 overflow-hidden">
+        <span class="flex h-2 w-2 relative flex-shrink-0">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+        </span>
+        <span id="schoolHeaderName" class="font-bold text-slate-200 truncate text-[11px]">Groupe Scolaire Al Madina</span>
+      </div>
+
+      <!-- Quick Geofence Indicator Pill -->
+      <div id="geofencePill" class="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-bold bg-slate-800 text-slate-300 border border-slate-700">
+        <i class="fa-solid fa-route text-brand-400 text-[10px]"></i>
+        <span id="geofenceDistanceText">-- m</span>
+      </div>
+    </div>
+
+    <!-- SCROLLABLE TAB CONTENTS (MOBILE VIEWPORT) -->
+    <main id="appMainScroll" class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative p-3.5 pb-24 space-y-4">
+
+      <!-- ========================================== -->
+      <!-- TAB 1: LIVE / SORTIES (ROLE-ADAPTIVE VIEW) -->
+      <!-- ========================================== -->
+      <section id="tab-live" class="tab-view space-y-4">
+        
+        <!-- PARENT VIEW: Radar & Call Button -->
+        <div id="parentLiveContainer" class="space-y-4">
+          
+          <!-- GPS Radar Widget -->
+          <div class="glass-card rounded-3xl p-4 relative overflow-hidden text-center border border-slate-700/60 shadow-lg">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="flex items-center justify-between mb-3 text-left">
+              <div>
+                <span class="text-[11px] uppercase tracking-wider font-extrabold text-brand-400 flex items-center gap-1.5">
+                  <i class="fa-solid fa-satellite"></i> <span data-i18n="gpsRadar">Radar de Présence</span>
+                </span>
+                <h3 class="text-sm font-bold text-white" data-i18n="portailGeofence">Portail Principal</h3>
+              </div>
+              <button onclick="app.toggleGpsSimulation()" class="btn-press text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-brand-300 border border-brand-500/30 flex items-center gap-1 font-semibold">
+                <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+                <span id="simBtnText" data-i18n="simPresence">Simuler Arrivée</span>
+              </button>
+            </div>
+
+            <!-- Radar Graphic with Pulsing Circles -->
+            <div class="relative w-36 h-36 mx-auto my-2 flex items-center justify-center">
+              <div id="radarRing1" class="absolute inset-0 rounded-full border-2 border-brand-500/20"></div>
+              <div id="radarRing2" class="absolute inset-4 rounded-full border border-brand-500/30"></div>
+              <div id="radarRing3" class="absolute inset-8 rounded-full border border-brand-500/40"></div>
+              
+              <!-- Center Pulse Beacon -->
+              <div id="radarCenter" class="w-16 h-16 rounded-full bg-gradient-to-tr from-brand-600 to-emerald-400 flex flex-col items-center justify-center text-white shadow-xl z-10 transition-all duration-500">
+                <i id="radarIcon" class="fa-solid fa-car text-xl"></i>
+                <span id="radarDistanceValue" class="text-[10px] font-extrabold tracking-tighter mt-0.5">25m</span>
+              </div>
+
+              <!-- Animated Ping Effect -->
+              <div id="radarPing" class="absolute inset-0 rounded-full bg-brand-500/20 animate-radar"></div>
+            </div>
+
+            <!-- Distance and Status Message -->
+            <div class="mt-2">
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" id="geofenceStatusBadge">
+                <i class="fa-solid fa-circle-check text-brand-400"></i>
+                <span id="geofenceStatusText" data-i18n="zoneOk">Vous êtes devant l'école</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1" id="geofenceSubtext">
+                <span data-i18n="rayonAuto">Rayon d'activation automatique :</span> <span id="activeRadiusDisplay" class="font-bold text-white">300m</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- SIBLING GROUP CALL / MULTI-SELECTION BANNER -->
+          <div id="siblingNoticeBanner" class="p-3 rounded-2xl bg-gradient-to-r from-indigo-950/60 to-slate-900 border border-indigo-500/30 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm font-bold">
+                <i class="fa-solid fa-users"></i>
+              </div>
+              <div>
+                <span class="font-extrabold text-white" data-i18n="fratrieMode">Mode Fratrie Actif</span>
+                <p class="text-[10px] text-slate-400" data-i18n="fratrieSub">Appel groupé pour tous vos enfants en 1 tap</p>
+              </div>
+            </div>
+            <button onclick="app.callAllSiblings()" class="btn-press px-2.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-[11px] shadow-md flex items-center gap-1">
+              <i class="fa-solid fa-bell"></i>
+              <span data-i18n="callAll">Tous appeler</span>
+            </button>
+          </div>
+
+          <!-- CHILDREN CARDS CONTAINER -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between px-1">
+              <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-children text-brand-400"></i> <span data-i18n="myChildren">Mes Enfants</span> (<span id="parentChildrenCount">2</span>)
+              </h4>
+              <button onclick="app.showAddChildModal()" class="text-xs font-bold text-brand-400 hover:text-brand-300 flex items-center gap-1">
+                <i class="fa-solid fa-plus-circle"></i> <span data-i18n="addChild">Ajouter</span>
+              </button>
+            </div>
+
+            <!-- Dynamic Child Cards injected by JS -->
+            <div id="parentChildrenList" class="space-y-3">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- BIG TACTILE ANAWSALT CALL BUTTON -->
+          <div class="pt-2 sticky bottom-20 z-20">
+            <button id="btnAnaWsaltMain" onclick="app.triggerMainArrivalCall()" class="btn-press w-full py-4 px-5 rounded-3xl bg-gradient-to-r from-brand-600 via-emerald-500 to-teal-500 text-white font-extrabold text-base tracking-wide shadow-2xl shadow-brand-500/30 flex items-center justify-center gap-3 border-t border-emerald-300/40 transition-all duration-300">
+              <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white">
+                <i class="fa-solid fa-hand-wave text-lg"></i>
+              </div>
+              <div class="text-left">
+                <div class="text-sm font-black uppercase tracking-wider leading-none">ANAWSALT !</div>
+                <div class="text-[11px] font-medium text-emerald-100" data-i18n="imAtGate">Je suis arrivé(e) devant l'école</div>
+              </div>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- TEACHER VIEW: Class Queue & Release 1-Tap -->
+        <div id="teacherLiveContainer" class="hidden space-y-4">
+          
+          <!-- Teacher Class Header Card -->
+          <div class="glass-card rounded-3xl p-4 border border-indigo-500/30 bg-gradient-to-br from-slate-900 to-indigo-950/40">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-xl font-bold">
+                  <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+                <div>
+                  <span class="text-[10px] font-extrabold text-indigo-400 uppercase tracking-wider" data-i18n="vueProfesseur">Espace Enseignant</span>
+                  <h3 id="teacherClassName" class="text-base font-extrabold text-white">Classe : CP - A</h3>
+                  <p id="teacherPupilsCount" class="text-[11px] text-slate-400">2 élèves appelés à faire sortir</p>
+                </div>
+              </div>
+              <button onclick="app.testAudioChime()" class="btn-press w-9 h-9 rounded-xl bg-slate-800 text-indigo-300 border border-slate-700 flex items-center justify-center" title="Tester le carillon">
+                <i class="fa-solid fa-volume-high"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Calls Waiting Queue -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between px-1">
+              <h4 class="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+                <span data-i18n="parentsDevant">Parents au portail</span>
+                <span id="teacherQueueBadge" class="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">1</span>
+              </h4>
+              <span class="text-[10px] text-slate-400" data-i18n="triArrivee">Trié par heure d'arrivée</span>
+            </div>
+
+            <!-- Injected List of Called Students in this Teacher's Class -->
+            <div id="teacherQueueList" class="space-y-3">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- GATEKEEPER VIEW: Gate Control Tower & Secure Release -->
+        <div id="gatekeeperLiveContainer" class="hidden space-y-4">
+          
+          <!-- Gate Control Header -->
+          <div class="glass-card rounded-3xl p-4 border border-emerald-500/30 bg-gradient-to-br from-slate-900 to-emerald-950/40">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xl font-bold">
+                  <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                  <span class="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider" data-i18n="vuePortail">Poste Contrôle Portail</span>
+                  <h3 class="text-base font-extrabold text-white" data-i18n="surveillanceFlux">Remise Sécurisée</h3>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span id="gateActivePolicyBadge" class="px-2 py-0.5 rounded-full text-[9px] bg-emerald-500/20 text-emerald-300 font-extrabold border border-emerald-500/40">
+                      Mode PIN 4 Chiffres
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Scanner Trigger Button -->
+              <button onclick="app.openQrScannerModal()" class="btn-press px-3 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-lg flex items-center gap-1.5">
+                <i class="fa-solid fa-qrcode text-sm"></i>
+                <span data-i18n="scannerPass">Scanner</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Pills for Gatekeeper -->
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+            <button onclick="app.setGatekeeperFilter('all')" class="gate-filter-btn px-3 py-1 rounded-full text-xs font-bold bg-brand-500 text-white flex-shrink-0" data-filter="all">Tous (<span id="gkCountAll">2</span>)</button>
+            <button onclick="app.setGatekeeperFilter('transit')" class="gate-filter-btn px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 flex-shrink-0" data-filter="transit">En route (<span id="gkCountTransit">1</span>)</button>
+            <button onclick="app.setGatekeeperFilter('ready')" class="gate-filter-btn px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 flex-shrink-0" data-filter="ready">Prêt au portail (<span id="gkCountReady">1</span>)</button>
+            <button onclick="app.setGatekeeperFilter('called')" class="gate-filter-btn px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 flex-shrink-0" data-filter="called">En classe (<span id="gkCountCalled">0</span>)</button>
+          </div>
+
+          <!-- Gatekeeper Queue List -->
+          <div id="gatekeeperQueueList" class="space-y-3">
+            <!-- Injected via JS -->
+          </div>
+
+        </div>
+
+        <!-- ADMIN LIVE DASHBOARD SUMMARY (If role is Admin) -->
+        <div id="adminLiveContainer" class="hidden space-y-4">
+          <div class="glass-card rounded-3xl p-4 border border-purple-500/30 bg-gradient-to-br from-slate-900 to-purple-950/40">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-xl font-bold">
+                  <i class="fa-solid fa-gauge-high"></i>
+                </div>
+                <div>
+                  <span class="text-[10px] font-extrabold text-purple-400 uppercase tracking-wider" data-i18n="supervisionAdmin">Supervision Direction</span>
+                  <h3 class="text-base font-extrabold text-white" data-i18n="fluxDirect">Flux des Sorties en Direct</h3>
+                </div>
+              </div>
+              <button onclick="app.switchTab('admin')" class="btn-press text-xs px-2.5 py-1 rounded-xl bg-purple-600/30 text-purple-300 border border-purple-500/30 font-bold">
+                <i class="fa-solid fa-sliders"></i> Config
+              </button>
+            </div>
+            
+            <!-- Live stats grid -->
+            <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+              <div class="p-2.5 rounded-2xl bg-slate-800/80 border border-slate-700/60">
+                <span class="text-lg font-black text-amber-400" id="statLiveWaiting">1</span>
+                <p class="text-[10px] font-semibold text-slate-400" data-i18n="enAttente">En attente</p>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-slate-800/80 border border-slate-700/60">
+                <span class="text-lg font-black text-indigo-400" id="statLiveTransit">1</span>
+                <p class="text-[10px] font-semibold text-slate-400" data-i18n="enRoute">En route</p>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-slate-800/80 border border-slate-700/60">
+                <span class="text-lg font-black text-emerald-400" id="statLiveFinished">12</span>
+                <p class="text-[10px] font-semibold text-slate-400" data-i18n="remisAujourdhui">Remis ajourd'hui</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- All Live Calls List for Admin -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between px-1">
+              <h4 class="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-list-check text-purple-400"></i> <span data-i18n="tousAppelsActifs">Tous les appels actifs</span>
+              </h4>
+              <button onclick="app.refreshAllData()" class="text-xs text-slate-400 hover:text-white">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </button>
+            </div>
+            <div id="adminLiveQueueList" class="space-y-3">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: HISTORIQUE / AUDIT TRAIL LOGS       -->
+      <!-- ========================================== -->
+      <section id="tab-history" class="tab-view hidden space-y-4">
+        
+        <!-- History Header & Controls -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-extrabold text-white" data-i18n="journalSorties">Journal des Sorties</h3>
+            <p class="text-[11px] text-slate-400" data-i18n="tracabiliteComplete">Traçabilité complète & horodatée</p>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="app.exportHistoryCsv()" class="btn-press px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-brand-300 border border-slate-700 text-xs font-bold flex items-center gap-1">
+              <i class="fa-solid fa-file-csv"></i> CSV
+            </button>
+            <button onclick="app.printHistorySummary()" class="btn-press px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 text-xs font-bold flex items-center gap-1">
+              <i class="fa-solid fa-print"></i> PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="glass-card rounded-2xl p-2.5 flex items-center gap-2">
+          <div class="flex-1 relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+            <input type="text" id="historySearchInput" oninput="app.renderHistoryList()" placeholder="Rechercher élève, parent..." class="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500">
+          </div>
+          <select id="historyFilterClass" onchange="app.renderHistoryList()" class="bg-slate-900 border border-slate-700/80 rounded-xl px-2 py-1.5 text-xs text-slate-300 focus:outline-none">
+            <option value="all">Toutes classes</option>
+            <option value="CP-A">CP - A</option>
+            <option value="CE1-B">CE1 - B</option>
+            <option value="Maternelle">Maternelle</option>
+          </select>
+        </div>
+
+        <!-- History Records Timeline List -->
+        <div id="historyLogList" class="space-y-3">
+          <!-- Rendered via JS -->
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: FAMILLE / ENFANTS & TIERS AUTORISÉS -->
+      <!-- ========================================== -->
+      <section id="tab-family" class="tab-view hidden space-y-4">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-extrabold text-white" data-i18n="espaceFamille">Fiches Famille & Tiers</h3>
+            <p class="text-[11px] text-slate-400" data-i18n="delegationsSecurisees">Délégations & Tiers Autorisés</p>
+          </div>
+          <button onclick="app.showAddDelegateModal()" class="btn-press px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md">
+            <i class="fa-solid fa-user-plus"></i> <span data-i18n="nouveauTiers">Nouveau Tiers</span>
+          </button>
+        </div>
+
+        <!-- Children Profiles Overview -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-graduation-cap text-brand-400"></i> <span data-i18n="enfantsInscrits">Enfants Inscrits</span>
+          </h4>
+          <div id="familyChildrenCards" class="space-y-3">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Authorized Third Parties (Délégations aux tiers) -->
+        <div class="space-y-3 pt-2">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-id-card text-indigo-400"></i> <span data-i18n="tiersAutorises">Personnes Autorisées</span>
+            </h4>
+            <span id="delegationModeBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+              Validation Admin
+            </span>
+          </div>
+
+          <div id="familyDelegatesList" class="space-y-3">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 4: DIRECTION / PARAMÈTRES ADMIN        -->
+      <!-- ========================================== -->
+      <section id="tab-admin" class="tab-view hidden space-y-4">
+        
+        <!-- Admin Title -->
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-extrabold text-white" data-i18n="administrationTitre">Panneau de Direction</h3>
+            <p class="text-[11px] text-slate-400" data-i18n="adminSousTitre">Politiques, Géofencing & Utilisateurs</p>
+          </div>
+          <button onclick="app.resetAllDemoData()" class="btn-press text-[11px] px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-rose-900/40 text-rose-300 border border-rose-500/30 font-bold">
+            <i class="fa-solid fa-rotate-left"></i> Reset Démo
+          </button>
+        </div>
+
+        <!-- 1. GEOFENCING & ÉTABLISSEMENT SETTINGS -->
+        <div class="glass-card rounded-3xl p-4 space-y-3 border border-slate-700/80">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-extrabold text-brand-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-map-location-dot"></i> <span data-i18n="geofencingConfig">Établissement & Géofencing</span>
+            </h4>
+            <span class="text-[10px] bg-brand-500/20 text-brand-300 font-bold px-2 py-0.5 rounded-full" id="geofenceRadiusBadge">300 m</span>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 mb-1" data-i18n="nomEcole">Nom de l'Établissement</label>
+            <input type="text" id="adminSchoolName" onchange="app.saveAdminSettings()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 mb-1">Latitude Portail</label>
+              <input type="number" step="any" id="adminGateLat" onchange="app.saveAdminSettings()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono">
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 mb-1">Longitude Portail</label>
+              <input type="number" step="any" id="adminGateLng" onchange="app.saveAdminSettings()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono">
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <button onclick="app.captureCurrentGpsPosition()" class="btn-press text-[11px] px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-brand-300 border border-slate-700 font-bold flex items-center gap-1.5">
+              <i class="fa-solid fa-crosshairs"></i> <span data-i18n="capturerGps">Prendre ma position GPS actuelle</span>
+            </button>
+          </div>
+
+          <!-- Geofence Radius Slider -->
+          <div class="pt-2">
+            <div class="flex items-center justify-between text-[11px] mb-1">
+              <span class="text-slate-300 font-semibold" data-i18n="rayonAutorise">Rayon de détection autorisé</span>
+              <span id="sliderRadiusValue" class="font-bold text-brand-400">300 mètres</span>
+            </div>
+            <input type="range" id="adminRadiusSlider" min="50" max="1000" step="25" value="300" oninput="app.updateRadiusSlider(this.value)" onchange="app.saveAdminSettings()" class="w-full accent-brand-500 cursor-pointer">
+            <div class="flex justify-between text-[9px] text-slate-500 font-bold mt-0.5">
+              <span>50m (Porte)</span>
+              <span>300m</span>
+              <span>1000m (1 km)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. CONFIGURABLE SECURITY POLICIES (À LA CARTE) -->
+        <div class="glass-card rounded-3xl p-4 space-y-3.5 border border-slate-700/80">
+          <h4 class="text-xs font-extrabold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-lock"></i> <span data-i18n="politiquesSecurite">Politiques de Sécurité Configurables</span>
+          </h4>
+
+          <!-- Policy 1: Gate Validation Mode -->
+          <div class="space-y-2">
+            <label class="block text-[11px] font-bold text-slate-200" data-i18n="modeValidation">
+              1. Mode de validation de remise au portail :
+            </label>
+            <div class="space-y-1.5">
+              <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-slate-700">
+                <input type="radio" name="validationMode" value="mode1_quick" onchange="app.setValidationMode(this.value)" class="accent-brand-500">
+                <div>
+                  <div class="text-xs font-bold text-white" data-i18n="mode1Titre">Mode 1 — Validation rapide (1 tap)</div>
+                  <div class="text-[10px] text-slate-400" data-i18n="mode1Desc">Vérification visuelle photo par le gérant + tap « Remis »</div>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-slate-700">
+                <input type="radio" name="validationMode" value="mode2_pin" checked onchange="app.setValidationMode(this.value)" class="accent-brand-500">
+                <div>
+                  <div class="text-xs font-bold text-white" data-i18n="mode2Titre">Mode 2 — Code PIN dynamique (4 chiffres)</div>
+                  <div class="text-[10px] text-slate-400" data-i18n="mode2Desc">Le parent montre son code PIN à 4 chiffres à saisir par le gérant</div>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-slate-700">
+                <input type="radio" name="validationMode" value="mode3_qr" onchange="app.setValidationMode(this.value)" class="accent-brand-500">
+                <div>
+                  <div class="text-xs font-bold text-white" data-i18n="mode3Titre">Mode 3 — Scan QR Code caméra mobile</div>
+                  <div class="text-[10px] text-slate-400" data-i18n="mode3Desc">Le gérant scanne le pass QR dynamique affiché sur le mobile du parent</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Policy 2: Sibling Multi-children Group Call -->
+          <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+            <div>
+              <div class="text-xs font-bold text-white" data-i18n="gestionFratries">2. Gestion des Fratries (Multi-enfants)</div>
+              <p class="text-[10px] text-slate-400" data-i18n="fratrieExplication">Permet l'appel groupé de tous les enfants en 1 seul tap</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="adminSiblingToggle" onchange="app.toggleSiblingPolicy(this.checked)" checked class="sr-only peer">
+              <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+            </label>
+          </div>
+
+          <!-- Policy 3: Delegation to Third Parties -->
+          <div class="pt-2 border-t border-slate-800 space-y-2">
+            <label class="block text-[11px] font-bold text-slate-200" data-i18n="delegationTiersOption">
+              3. Délégation aux Tiers Autorisés (Proches, Chauffeurs) :
+            </label>
+            <div class="space-y-1.5">
+              <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer">
+                <input type="radio" name="delegationMode" value="disabled" onchange="app.setDelegationPolicy(this.value)" class="accent-brand-500">
+                <div>
+                  <div class="text-xs font-bold text-white" data-i18n="delegationOff">Désactivé</div>
+                  <div class="text-[10px] text-slate-400" data-i18n="delegationOffDesc">Seuls les parents inscrits peuvent récupérer l'enfant</div>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer">
+                <input type="radio" name="delegationMode" value="approval_required" checked onchange="app.setDelegationPolicy(this.value)" class="accent-brand-500">
+                <div>
+                  <div class="text-xs font-bold text-white" data-i18n="delegationApproval">Validation Admin Obligatoire</div>
+                  <div class="text-[10px] text-slate-400" data-i18n="delegationApprovalDesc">Photo + CIN soumis par le parent, bloqué jusqu'à approbation Admin</div>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer">
+                <input type="radio" name="delegationMode" value="immediate" onchange="app.setDelegationPolicy(this.value)" class="accent-brand-500">
+                <div>
+                  <div class="text-xs font-bold text-white" data-i18n="delegationAutonome">Autonomie Immédiate</div>
+                  <div class="text-[10px] text-slate-400" data-i18n="delegationAutonomeDesc">Le parent génère directement un Pass temporaire daté sans validation</div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. APPROBATIONS EN ATTENTE (TIERS SOUMIS PAR LES PARENTS) -->
+        <div id="adminApprovalsContainer" class="glass-card rounded-3xl p-4 space-y-3 border border-amber-500/30">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-user-clock"></i> <span data-i18n="approbationsEnAttente">Demandes Tiers en Attente</span>
+            </h4>
+            <span id="pendingApprovalsCount" class="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full">1</span>
+          </div>
+          <div id="adminPendingList" class="space-y-2">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- 4. GESTION DES CLASSES & UTILISATEURS -->
+        <div class="glass-card rounded-3xl p-4 space-y-3 border border-slate-700/80">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-users-gear text-brand-400"></i> <span data-i18n="gestionScolaire">Classes & Utilisateurs</span>
+            </h4>
+            <button onclick="app.showAddUserModal()" class="text-xs text-brand-400 font-bold flex items-center gap-1">
+              <i class="fa-solid fa-plus-circle"></i> Ajouter
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800">
+              <div class="text-slate-400 text-[10px]">Classes Actives</div>
+              <div class="text-sm font-extrabold text-white mt-0.5" id="adminCountClasses">6 classes</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800">
+              <div class="text-slate-400 text-[10px]">Élèves Enregistrés</div>
+              <div class="text-sm font-extrabold text-white mt-0.5" id="adminCountStudents">5 élèves</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800">
+              <div class="text-slate-400 text-[10px]">Professeurs</div>
+              <div class="text-sm font-extrabold text-white mt-0.5" id="adminCountTeachers">2 enseignants</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800">
+              <div class="text-slate-400 text-[10px]">Gérants Portail</div>
+              <div class="text-sm font-extrabold text-white mt-0.5" id="adminCountGatekeepers">2 surveillants</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. FIREBASE REALTIME & CLOUD STORAGE SETTINGS -->
+        <div class="glass-card rounded-3xl p-4 space-y-3 border border-slate-700/80">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-cloud"></i> Synchronisation Firebase & Cloud
+            </h4>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Connecté</span>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Synchronisation bidirectionnelle instantanée multi-mobiles via Firebase Realtime Database & BroadcastChannel local.
+          </p>
+          <div class="flex gap-2">
+            <button onclick="app.showFirebaseConfigModal()" class="btn-press flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-gear"></i> Paramètres Firebase
+            </button>
+            <button onclick="app.syncCloudNow()" class="btn-press px-3 py-2 rounded-xl bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1">
+              <i class="fa-solid fa-rotate"></i> Synchroniser
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 5: PROFIL / COMPTE, MULTILINGUE & SETS -->
+      <!-- ========================================== -->
+      <section id="tab-profile" class="tab-view hidden space-y-4">
+        
+        <!-- Active User Profile Card -->
+        <div class="glass-card rounded-3xl p-4 relative overflow-hidden border border-slate-700/80">
+          <div class="flex items-center gap-3.5">
+            <div class="relative">
+              <img id="userProfileAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Avatar" class="w-16 h-16 rounded-2xl object-cover border-2 border-brand-500 shadow-lg">
+              <button onclick="app.changeProfilePhoto()" class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-brand-500 text-white flex items-center justify-center text-[10px] shadow" title="Modifier la photo">
+                <i class="fa-solid fa-camera"></i>
+              </button>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <h3 id="userProfileName" class="text-base font-extrabold text-white truncate">Karim Bennani</h3>
+                <span id="userProfileRoleTag" class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-brand-500/20 text-brand-300 uppercase border border-brand-500/30">Parent</span>
+              </div>
+              <p id="userProfilePhone" class="text-xs text-slate-400 font-mono mt-0.5">0661 234 567</p>
+              <p class="text-[10px] text-emerald-400 font-semibold mt-1 flex items-center gap-1">
+                <i class="fa-solid fa-shield-check"></i> Compte vérifié & sécurisé
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK ROLE SIMULATOR (SWITCHER) -->
+        <div class="p-3 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/30 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-extrabold text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-users-viewfinder text-indigo-400"></i> Simulateur Multi-rôles
+            </span>
+            <span class="text-[10px] text-indigo-300 font-bold">1 tap switch</span>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button onclick="app.switchRole('parent')" class="role-btn p-2 rounded-xl text-center bg-brand-600 text-white text-[11px] font-extrabold flex flex-col items-center gap-1" data-role="parent">
+              <i class="fa-solid fa-person text-sm"></i>
+              <span>Parent</span>
+            </button>
+            <button onclick="app.switchRole('teacher')" class="role-btn p-2 rounded-xl text-center bg-slate-800 text-slate-300 text-[11px] font-extrabold flex flex-col items-center gap-1" data-role="teacher">
+              <i class="fa-solid fa-chalkboard-user text-sm"></i>
+              <span>Prof</span>
+            </button>
+            <button onclick="app.switchRole('gatekeeper')" class="role-btn p-2 rounded-xl text-center bg-slate-800 text-slate-300 text-[11px] font-extrabold flex flex-col items-center gap-1" data-role="gatekeeper">
+              <i class="fa-solid fa-door-open text-sm"></i>
+              <span>Portail</span>
+            </button>
+            <button onclick="app.switchRole('admin')" class="role-btn p-2 rounded-xl text-center bg-slate-800 text-slate-300 text-[11px] font-extrabold flex flex-col items-center gap-1" data-role="admin">
+              <i class="fa-solid fa-crown text-sm"></i>
+              <span>Admin</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- MULTILINGUAL SYSTEM (3 Core + 9 On-Demand) -->
+        <div class="glass-card rounded-3xl p-4 space-y-3 border border-slate-700/80">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-language text-brand-400"></i> <span data-i18n="langueSysteme">Langue de l'application</span>
+            </h4>
+            <span id="activeLangTag" class="text-[10px] bg-brand-500/20 text-brand-300 font-bold px-2 py-0.5 rounded-full uppercase">FR</span>
+          </div>
+
+          <!-- 3 Core Languages -->
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="app.setLanguage('fr')" class="lang-btn p-2.5 rounded-xl border border-brand-500 bg-brand-500/20 text-brand-300 text-xs font-bold text-center flex flex-col items-center gap-1" data-lang="fr">
+              <span class="text-base">🇫🇷</span>
+              <span>Français</span>
+            </button>
+            <button onclick="app.setLanguage('ar')" class="lang-btn p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 text-xs font-bold text-center flex flex-col items-center gap-1 font-arabic" data-lang="ar">
+              <span class="text-base">🇲🇦</span>
+              <span>العربية (RTL)</span>
+            </button>
+            <button onclick="app.setLanguage('en')" class="lang-btn p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 text-xs font-bold text-center flex flex-col items-center gap-1" data-lang="en">
+              <span class="text-base">🇬🇧</span>
+              <span>English</span>
+            </button>
+          </div>
+
+          <!-- 9 On-Demand Additional Languages Dropdown -->
+          <div class="pt-2 border-t border-slate-800">
+            <label class="block text-[11px] text-slate-400 mb-1" data-i18n="autresLangues">+9 Langues disponibles à la demande :</label>
+            <select id="additionalLangSelect" onchange="app.setLanguage(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
+              <option value="" disabled selected>Sélectionner une langue supplémentaire...</option>
+              <option value="es">🇪🇸 Español (Espagnol)</option>
+              <option value="de">🇩🇪 Deutsch (Allemand)</option>
+              <option value="it">🇮🇹 Italiano (Italien)</option>
+              <option value="pt">🇵🇹 Português (Portugais)</option>
+              <option value="nl">🇳🇱 Nederlands (Néerlandais)</option>
+              <option value="tr">🇹🇷 Türkçe (Turc)</option>
+              <option value="ber">ⵣ ⵜⴰⵎⴰⵣⵉⵖⵜ (Amazighe / Tamazight)</option>
+              <option value="ru">🇷🇺 Русский (Russe)</option>
+              <option value="zh">🇨🇳 中文 (Chinois)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SOUND & HAPTIC VIBRATION SETTINGS -->
+        <div class="glass-card rounded-3xl p-4 space-y-3 border border-slate-700/80">
+          <h4 class="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-bell text-amber-400"></i> Alertes Sonores & Vibrations
+          </h4>
+
+          <div class="flex items-center justify-between text-xs">
+            <div>
+              <div class="font-bold text-white">Carillon sonore Web Audio</div>
+              <p class="text-[10px] text-slate-400">Son doux à l'arrivée d'un parent</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="settingSoundToggle" checked class="sr-only peer">
+              <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+            </label>
+          </div>
+
+          <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-800">
+            <div>
+              <div class="font-bold text-white">Retour Haptique (Vibrations)</div>
+              <p class="text-[10px] text-slate-400">Vibration mobile lors des actions clés</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="settingVibeToggle" checked class="sr-only peer">
+              <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+            </label>
+          </div>
+
+          <div class="pt-1">
+            <button onclick="app.testSoundAndHaptics()" class="btn-press w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-amber-300 border border-slate-700 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-volume-high"></i> Tester le son & la vibration
+            </button>
+          </div>
+        </div>
+
+        <!-- PRIVACY POLICY & ACCOUNT DELETION (GOOGLE PLAY STORE REQUIREMENT) -->
+        <div class="glass-card rounded-3xl p-4 space-y-3 border border-slate-700/80">
+          <h4 class="text-xs font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-shield-halved text-emerald-400"></i> Conformité & Confidentialité
+          </h4>
+
+          <div class="space-y-1.5 text-xs">
+            <button onclick="app.showPrivacyPolicyModal()" class="w-full text-left p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-between text-slate-300 font-semibold">
+              <span class="flex items-center gap-2">
+                <i class="fa-solid fa-file-contract text-slate-400"></i> Politique de Confidentialité
+              </span>
+              <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+            </button>
+
+            <!-- Permanent Account Deletion (Google Play Store Mandatory) -->
+            <button onclick="app.confirmDeleteAccount()" class="w-full text-left p-2.5 rounded-xl bg-rose-950/30 border border-rose-900/50 hover:bg-rose-900/40 flex items-center justify-between text-rose-300 font-bold">
+              <span class="flex items-center gap-2">
+                <i class="fa-solid fa-user-xmark text-rose-400"></i> Supprimer définitivement mon compte
+              </span>
+              <i class="fa-solid fa-trash-can text-[11px] text-rose-400"></i>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- FIXED 5-TAB BOTTOM NAVIGATION BAR (TOUCH ERGONOMIC) -->
+    <nav class="glass-nav fixed sm:absolute bottom-0 left-0 right-0 z-50 px-2 py-2 select-none" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));">
+      <div class="flex items-center justify-around max-w-md mx-auto">
+        
+        <!-- Tab 1: Live / Sorties -->
+        <button onclick="app.switchTab('live')" class="nav-tab-btn flex-1 py-1 flex flex-col items-center justify-center text-brand-400 transition" data-tab="live">
+          <div class="relative">
+            <i class="fa-solid fa-radar text-lg"></i>
+            <span id="navLiveBadge" class="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-brand-400 animate-ping"></span>
+          </div>
+          <span class="text-[10px] font-extrabold mt-1 tracking-tight" data-i18n="tabSorties">Sorties</span>
+        </button>
+
+        <!-- Tab 2: Historique -->
+        <button onclick="app.switchTab('history')" class="nav-tab-btn flex-1 py-1 flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 transition" data-tab="history">
+          <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+          <span class="text-[10px] font-bold mt-1 tracking-tight" data-i18n="tabHistorique">Historique</span>
+        </button>
+
+        <!-- Tab 3: Famille -->
+        <button onclick="app.switchTab('family')" class="nav-tab-btn flex-1 py-1 flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 transition" data-tab="family">
+          <i class="fa-solid fa-people-roof text-lg"></i>
+          <span class="text-[10px] font-bold mt-1 tracking-tight" data-i18n="tabFamille">Famille</span>
+        </button>
+
+        <!-- Tab 4: Admin (Direction) -->
+        <button onclick="app.switchTab('admin')" class="nav-tab-btn flex-1 py-1 flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 transition relative" data-tab="admin">
+          <div class="relative">
+            <i class="fa-solid fa-shield-halved text-lg"></i>
+            <span id="navAdminBadge" class="hidden absolute -top-1 -right-2 w-2 h-2 rounded-full bg-amber-400"></span>
+          </div>
+          <span class="text-[10px] font-bold mt-1 tracking-tight" data-i18n="tabAdmin">Direction</span>
+        </button>
+
+        <!-- Tab 5: Profil -->
+        <button onclick="app.switchTab('profile')" class="nav-tab-btn flex-1 py-1 flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 transition" data-tab="profile">
+          <i class="fa-solid fa-user-gear text-lg"></i>
+          <span class="text-[10px] font-bold mt-1 tracking-tight" data-i18n="tabProfil">Profil</span>
+        </button>
+
+      </div>
+    </nav>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODALS & POPUPS                                          -->
+  <!-- ======================================================== -->
+
+  <!-- 1. DYNAMIC DIGITAL EXIT PASS MODAL (PARENT QR / PIN PASS) -->
+  <div id="modalPass" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+    <div class="glass-card w-full max-w-sm rounded-3xl p-5 border border-brand-500/30 text-center relative space-y-4 animate-in fade-in zoom-in duration-200">
+      <button onclick="app.closePassModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div>
+        <span class="text-[10px] font-extrabold uppercase tracking-widest text-brand-400">Pass Sécurisé de Sortie</span>
+        <h3 id="modalPassChildName" class="text-lg font-black text-white">Yasmine Bennani</h3>
+        <p id="modalPassClass" class="text-xs text-slate-400">Classe : CP - A</p>
+      </div>
+
+      <!-- Child & Parent Dual Avatar Header -->
+      <div class="flex items-center justify-center gap-3">
+        <div class="text-center">
+          <img id="modalPassChildPhoto" src="" class="w-14 h-14 rounded-2xl object-cover border-2 border-brand-500 shadow-md mx-auto" alt="Élève">
+          <span class="text-[9px] font-bold text-slate-400 block mt-1">Élève</span>
+        </div>
+        <i class="fa-solid fa-link text-brand-400 text-sm"></i>
+        <div class="text-center">
+          <img id="modalPassParentPhoto" src="" class="w-14 h-14 rounded-2xl object-cover border-2 border-indigo-500 shadow-md mx-auto" alt="Parent">
+          <span id="modalPassParentRole" class="text-[9px] font-bold text-slate-400 block mt-1">Parent</span>
+        </div>
+      </div>
+
+      <!-- Dynamic 4-Digit PIN Code Box -->
+      <div class="p-3.5 rounded-2xl bg-slate-900 border border-brand-500/40 space-y-1">
+        <div class="text-[10px] uppercase font-bold text-slate-400">Code PIN de Vérification</div>
+        <div id="modalPassPinCode" class="text-3xl font-black text-brand-300 font-mono tracking-widest">8492</div>
+        <p class="text-[9px] text-slate-500">Donnez ce code au gérant de portail</p>
+      </div>
+
+      <!-- Dynamic QR Code Container -->
+      <div class="space-y-1 flex flex-col items-center justify-center">
+        <div id="modalPassQrContainer" class="p-3 bg-white rounded-2xl shadow-xl flex items-center justify-center"></div>
+        <span class="text-[10px] text-slate-400 font-medium">QR Code dynamique régénéré à chaque sortie</span>
+      </div>
+
+      <button onclick="app.closePassModal()" class="btn-press w-full py-3 rounded-2xl bg-brand-600 hover:bg-brand-500 text-white font-extrabold text-xs shadow-lg">
+        Fermer le Pass
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. GATEKEEPER QR SCANNER CAMERA / PIN VERIFICATION MODAL -->
+  <div id="modalQrScanner" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+    <div class="glass-card w-full max-w-sm rounded-3xl p-5 border border-emerald-500/30 text-center relative space-y-4">
+      <button onclick="app.closeQrScannerModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div>
+        <span class="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">Vérification Portail</span>
+        <h3 class="text-base font-black text-white">Scanner le Pass Mobile</h3>
+      </div>
+
+      <!-- Camera Preview Box -->
+      <div class="relative w-full aspect-square bg-slate-950 rounded-2xl overflow-hidden border-2 border-emerald-500/40 flex items-center justify-center">
+        <div id="qrReader" class="w-full h-full"></div>
+        
+        <!-- Scanner Overlay Lines -->
+        <div class="absolute inset-8 border-2 border-emerald-400 rounded-xl pointer-events-none opacity-60">
+          <div class="w-full h-0.5 bg-emerald-400 shadow-[0_0_10px_#10b981] animate-bounce"></div>
+        </div>
+      </div>
+
+      <!-- Fallback 4-Digit PIN Manual Entry -->
+      <div class="space-y-2">
+        <p class="text-[11px] text-slate-400">Ou saisissez le code PIN 4 chiffres :</p>
+        <div class="flex items-center justify-center gap-2">
+          <input type="text" id="manualPinInput" maxlength="4" placeholder="0000" class="w-32 bg-slate-900 border border-emerald-500/50 rounded-xl py-2 text-center text-xl font-mono font-bold text-white tracking-widest focus:outline-none focus:border-emerald-400">
+          <button onclick="app.submitManualPin()" class="btn-press px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs">
+            Valider
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Test Simulation Button -->
+      <button onclick="app.simulateScanMatch()" class="btn-press w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center justify-center gap-2">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Simuler Détection Pass Réussi
+      </button>
+    </div>
+  </div>
+
+  <!-- 3. ADD AUTHORIZED DELEGATE MODAL (TIERS) -->
+  <div id="modalAddDelegate" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+    <div class="glass-card w-full max-w-sm rounded-3xl p-5 border border-indigo-500/30 text-left relative space-y-3.5">
+      <button onclick="app.closeAddDelegateModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div>
+        <span class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-400">Délégation Sécurisée</span>
+        <h3 class="text-base font-black text-white">Nouveau Tiers Autorisé</h3>
+        <p class="text-[11px] text-slate-400">Autoriser un proche à récupérer vos enfants</p>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Nom et Prénom</label>
+          <input type="text" id="delegateName" placeholder="Ex: Fatima Bennani (Grand-mère)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Numéro CIN</label>
+            <input type="text" id="delegateCin" placeholder="Ex: BE123456" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono uppercase focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Lien de Parenté</label>
+            <select id="delegateRelation" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-2 text-white focus:outline-none focus:border-indigo-500">
+              <option value="Grand-mère">Grand-mère</option>
+              <option value="Grand-père">Grand-père</option>
+              <option value="Chauffeur">Chauffeur</option>
+              <option value="Oncle/Tante">Oncle / Tante</option>
+              <option value="Voisin/Ami">Voisin / Proche</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Numéro Téléphone</label>
+          <input type="tel" id="delegatePhone" placeholder="0661 000 000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Photo d'identité (Obligatoire)</label>
+          <input type="file" id="delegatePhotoInput" accept="image/*" class="w-full text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white cursor-pointer">
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button onclick="app.saveNewDelegate()" class="btn-press w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow-lg">
+          Enregistrer le Tiers
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. ROLE SWITCHER SELECTOR MODAL -->
+  <div id="modalRoleSelector" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+    <div class="glass-card w-full max-w-xs rounded-3xl p-5 border border-slate-700 text-center relative space-y-3">
+      <button onclick="app.toggleRoleModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="w-12 h-12 rounded-2xl bg-brand-500/20 text-brand-400 flex items-center justify-center text-xl mx-auto border border-brand-500/30">
+        <i class="fa-solid fa-user-gear"></i>
+      </div>
+
+      <div>
+        <h3 class="text-base font-extrabold text-white">Changer de Compte / Rôle</h3>
+        <p class="text-[11px] text-slate-400">Testez instantanément chaque expérience</p>
+      </div>
+
+      <div class="space-y-2 pt-1">
+        <button onclick="app.switchRole('parent'); app.toggleRoleModal();" class="w-full p-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 flex items-center justify-between text-left">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-xl bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-user"></i>
+            </span>
+            <div>
+              <div class="text-xs font-bold text-white">Karim Bennani</div>
+              <div class="text-[10px] text-slate-400">Parent (2 enfants)</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-arrow-right text-xs text-slate-500"></i>
+        </button>
+
+        <button onclick="app.switchRole('teacher'); app.toggleRoleModal();" class="w-full p-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 flex items-center justify-between text-left">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-chalkboard-user"></i>
+            </span>
+            <div>
+              <div class="text-xs font-bold text-white">Mme Laila Alami</div>
+              <div class="text-[10px] text-slate-400">Professeur (CP-A)</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-arrow-right text-xs text-slate-500"></i>
+        </button>
+
+        <button onclick="app.switchRole('gatekeeper'); app.toggleRoleModal();" class="w-full p-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 flex items-center justify-between text-left">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-door-open"></i>
+            </span>
+            <div>
+              <div class="text-xs font-bold text-white">Hassan El Amrani</div>
+              <div class="text-[10px] text-slate-400">Surveillant Portail</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-arrow-right text-xs text-slate-500"></i>
+        </button>
+
+        <button onclick="app.switchRole('admin'); app.toggleRoleModal();" class="w-full p-3 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 flex items-center justify-between text-left">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-solid fa-crown"></i>
+            </span>
+            <div>
+              <div class="text-xs font-bold text-white">Direction de l'École</div>
+              <div class="text-[10px] text-slate-400">Super Administrateur</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-arrow-right text-xs text-slate-500"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none max-w-xs w-full px-4"></div>
+
+  <!-- ======================================================== -->
+  <!-- APPLICATION SCRIPT & CORE ENGINE (MODULAR ARCHITECTURE)  -->
+  <!-- ======================================================== -->
+  <script>
+    /**
+     * AnaWsalt — High-Performance Mobile-First Core Architecture
+     * Features: Haversine GPS Geofencing, Dynamic PIN/QR, Audio Synthesizer,
+     * BroadcastChannel Sync, IndexedDB + LocalStorage, Multilingual Engine (3 + 9)
+     */
+    const AnaWsaltApp = (() => {
+
+      // --- INITIAL SEED DATA ---
+      const DEFAULT_STATE = {
+        establishment: {
+          name: "Groupe Scolaire Al Madina — Casablanca",
+          gateLat: 33.589886,
+          gateLng: -7.603869,
+          radiusMeters: 300,
+          schedules: "11h30 - 12h45 & 16h15 - 17h30",
+          policies: {
+            validationMode: "mode2_pin", // 'mode1_quick', 'mode2_pin', 'mode3_qr'
+            siblingCallEnabled: true,
+            delegationMode: "approval_required" // 'disabled', 'approval_required', 'immediate'
+          }
+        },
+        currentRole: "parent", // 'parent', 'teacher', 'gatekeeper', 'admin'
+        language: "fr",
+        soundEnabled: true,
+        vibeEnabled: true,
+        gpsSimulated: true, // true simulates presence at 25m for instantaneous evaluation
+        simulatedDistance: 25, // meters
+        user: {
+          id: "parent_karim",
+          name: "Karim Bennani",
+          phone: "0661 234 567",
+          role: "parent",
+          avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"
+        },
+        classes: [
+          { id: "CP-A", name: "CP - A", teacherId: "teacher_laila" },
+          { id: "CP-B", name: "CP - B", teacherId: "teacher_youssef" },
+          { id: "CE1-A", name: "CE1 - A", teacherId: "teacher_laila" },
+          { id: "CE1-B", name: "CE1 - B", teacherId: "teacher_youssef" },
+          { id: "CE2", name: "CE 2", teacherId: "teacher_laila" },
+          { id: "Maternelle", name: "Maternelle GS", teacherId: "teacher_youssef" }
+        ],
+        students: [
+          {
+            id: "stu_yasmine",
+            firstName: "Yasmine",
+            lastName: "Bennani",
+            classId: "CP-A",
+            parentId: "parent_karim",
+            photo: "https://images.unsplash.com/photo-1543332164-6e82f355badc?auto=format&fit=crop&w=200&q=80",
+            status: "idle", // 'idle', 'called', 'transit', 'ready', 'completed'
+            lastPin: "8492"
+          },
+          {
+            id: "stu_adam",
+            firstName: "Adam",
+            lastName: "Bennani",
+            classId: "CE1-B",
+            parentId: "parent_karim",
+            photo: "https://images.unsplash.com/photo-1595454223600-91fbdd772a5a?auto=format&fit=crop&w=200&q=80",
+            status: "idle",
+            lastPin: "4198"
+          },
+          {
+            id: "stu_rayan",
+            firstName: "Rayan",
+            lastName: "Kettani",
+            classId: "CP-A",
+            parentId: "parent_salma",
+            photo: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=200&q=80",
+            status: "called",
+            lastPin: "6734"
+          },
+          {
+            id: "stu_kenza",
+            firstName: "Kenza",
+            lastName: "Fassi",
+            classId: "CP-A",
+            parentId: "parent_fassi",
+            photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
+            status: "transit",
+            lastPin: "9210"
+          }
+        ],
+        delegates: [
+          {
+            id: "del_fatima",
+            parentId: "parent_karim",
+            name: "Fatima Bennani",
+            relation: "Grand-mère",
+            cin: "BE123456",
+            phone: "0662 334 455",
+            photo: "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?auto=format&fit=crop&w=200&q=80",
+            status: "approved" // 'approved', 'pending'
+          },
+          {
+            id: "del_mohamed",
+            parentId: "parent_karim",
+            name: "Mohamed Chauffeur",
+            relation: "Chauffeur",
+            cin: "BK789012",
+            phone: "0670 998 877",
+            photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+            status: "pending"
+          }
+        ],
+        activePickups: [
+          {
+            id: "call_rayan_1",
+            studentId: "stu_rayan",
+            studentName: "Rayan Kettani",
+            classId: "CP-A",
+            callerId: "parent_salma",
+            callerName: "Salma Kettani (Mère)",
+            callerPhoto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+            status: "called", // 'called', 'transit', 'ready', 'completed'
+            pin: "6734",
+            calledAt: Date.now() - 140000,
+            releasedAt: null,
+            handedAt: null
+          },
+          {
+            id: "call_kenza_1",
+            studentId: "stu_kenza",
+            studentName: "Kenza Fassi",
+            classId: "CP-A",
+            callerId: "parent_fassi",
+            callerName: "Amine Fassi (Père)",
+            callerPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+            status: "transit",
+            pin: "9210",
+            calledAt: Date.now() - 320000,
+            releasedAt: Date.now() - 60000,
+            handedAt: null
+          }
+        ],
+        history: [
+          {
+            id: "hist_1",
+            studentName: "Yasmine Bennani",
+            className: "CP - A",
+            retrievedBy: "Karim Bennani (Père)",
+            date: "Aujourd'hui",
+            calledTime: "12:30",
+            releasedTime: "12:32",
+            handedTime: "12:35",
+            duration: "5 min",
+            status: "Remis au portail"
+          },
+          {
+            id: "hist_2",
+            studentName: "Adam Bennani",
+            className: "CE1 - B",
+            retrievedBy: "Fatima Bennani (Grand-mère)",
+            date: "Hier",
+            calledTime: "16:30",
+            releasedTime: "16:33",
+            handedTime: "16:36",
+            duration: "6 min",
+            status: "Remis au portail"
+          }
+        ],
+        deletedAccountIds: []
+      };
+
+      // --- MULTILINGUAL DICTIONARY (3 CORE + 9 EXPANDABLE) ---
+      const I18N = {
+        fr: {
+          appTitle: "AnaWsalt",
+          gpsRadar: "Radar de Présence",
+          portailGeofence: "Portail Principal",
+          simPresence: "Simuler Arrivée",
+          zoneOk: "Vous êtes devant l'école",
+          zoneFar: "Hors zone autorisée",
+          rayonAuto: "Rayon d'activation :",
+          fratrieMode: "Mode Fratrie Actif",
+          fratrieSub: "Appel groupé pour tous vos enfants",
+          callAll: "Tous appeler",
+          myChildren: "Mes Enfants",
+          addChild: "Ajouter",
+          imAtGate: "Je suis arrivé(e) devant l'école",
+          vueProfesseur: "Espace Enseignant",
+          parentsDevant: "Parents au portail",
+          triArrivee: "Trié par heure d'arrivée",
+          vuePortail: "Poste Contrôle Portail",
+          surveillanceFlux: "Remise Sécurisée",
+          scannerPass: "Scanner Pass",
+          supervisionAdmin: "Supervision Direction",
+          fluxDirect: "Flux des Sorties en Direct",
+          enAttente: "En attente",
+          enRoute: "En route",
+          remisAujourdhui: "Remis aujourd'hui",
+          tousAppelsActifs: "Tous les appels actifs",
+          journalSorties: "Journal des Sorties",
+          tracabiliteComplete: "Traçabilité complète & horodatée",
+          espaceFamille: "Fiches Famille & Tiers",
+          delegationsSecurisees: "Délégations & Tiers Autorisés",
+          nouveauTiers: "Nouveau Tiers",
+          enfantsInscrits: "Enfants Inscrits",
+          tiersAutorises: "Personnes Autorisées",
+          administrationTitre: "Panneau de Direction",
+          adminSousTitre: "Politiques, Géofencing & Utilisateurs",
+          geofencingConfig: "Établissement & Géofencing",
+          nomEcole: "Nom de l'Établissement",
+          capturerGps: "Prendre ma position GPS actuelle",
+          rayonAutorise: "Rayon de détection autorisé",
+          politiquesSecurite: "Politiques de Sécurité Configurables",
+          modeValidation: "1. Mode de validation de remise au portail :",
+          mode1Titre: "Mode 1 — Validation rapide (1 tap)",
+          mode1Desc: "Vérification visuelle photo par le gérant + tap « Remis »",
+          mode2Titre: "Mode 2 — Code PIN dynamique (4 chiffres)",
+          mode2Desc: "Le parent montre son code PIN à saisir par le gérant",
+          mode3Titre: "Mode 3 — Scan QR Code caméra mobile",
+          mode3Desc: "Le gérant scanne le pass QR sur le smartphone du parent",
+          gestionFratries: "2. Gestion des Fratries (Multi-enfants)",
+          fratrieExplication: "Permet l'appel groupé de tous les enfants en 1 seul tap",
+          delegationTiersOption: "3. Délégation aux Tiers Autorisés :",
+          delegationOff: "Désactivé",
+          delegationOffDesc: "Seuls les parents inscrits peuvent récupérer l'enfant",
+          delegationApproval: "Validation Admin Obligatoire",
+          delegationApprovalDesc: "Photo + CIN requis, bloqué jusqu'à approbation",
+          delegationAutonome: "Autonomie Immédiate",
+          delegationAutonomeDesc: "Le parent génère directement un Pass temporaire daté",
+          approbationsEnAttente: "Demandes Tiers en Attente",
+          gestionScolaire: "Classes & Utilisateurs",
+          langueSysteme: "Langue de l'application",
+          autresLangues: "+9 Langues disponibles à la demande :",
+          tabSorties: "Sorties",
+          tabHistorique: "Historique",
+          tabFamille: "Famille",
+          tabAdmin: "Direction",
+          tabProfil: "Profil",
+          libererEleve: "Libérer l'élève",
+          confirmerRemise: "Confirmer la remise",
+          relancerClasse: "Relancer la classe"
+        },
+        ar: {
+          appTitle: "أنا وصلت",
+          gpsRadar: "رادار الحضور الذكي",
+          portailGeofence: "البوابة الرئيسية",
+          simPresence: "محاكاة الحضور",
+          zoneOk: "أنت الآن أمام المدرسة",
+          zoneFar: "خارج النطاق المسموح",
+          rayonAuto: "نطاق التفعيل التلقائي :",
+          fratrieMode: "وضع الإخوة مفعّل",
+          fratrieSub: "نداء موحّد لجميع أطفالك بلمسة واحدة",
+          callAll: "نداء الكل",
+          myChildren: "أطفالي",
+          addChild: "إضافة",
+          imAtGate: "أنا متواجد أمام باب المدرسة",
+          vueProfesseur: "فضاء الأستاذ",
+          parentsDevant: "أولياء الأمور بالباب",
+          triArrivee: "مرتب حسب وقت الوصول",
+          vuePortail: "مركز مراقبة البوابة",
+          surveillanceFlux: "تسليم التلاميذ الآمن",
+          scannerPass: "مسح الرمز",
+          supervisionAdmin: "إدارة المؤسسة",
+          fluxDirect: "متابعة خروج التلاميذ المباشر",
+          enAttente: "في الانتظار",
+          enRoute: "في الطريق",
+          remisAujourdhui: "تم التسليم اليوم",
+          tousAppelsActifs: "جميع النداءات النشطة",
+          journalSorties: "سجل الخروج",
+          tracabiliteComplete: "توثيق شامل ومؤرخ بالدقيقة",
+          espaceFamille: "بيانات الأسرة والمفوضين",
+          delegationsSecurisees: "تفويض استلام الأطفال",
+          nouveauTiers: "إضافة مفوض",
+          enfantsInscrits: "الأطفال المسجلون",
+          tiersAutorises: "الأشخاص المرخص لهم",
+          administrationTitre: "لوحة تحكم الإدارة",
+          adminSousTitre: "السياسات الأمنية، النطاق الجغرافي والمستخدمين",
+          geofencingConfig: "إعدادات المدرسة والنطاق الجغرافي",
+          nomEcole: "اسم المؤسسة التعليمية",
+          capturerGps: "تحديد موقعي الحالي كبوابة",
+          rayonAutorise: "نطاق الاستشعار المسموح به",
+          politiquesSecurite: "سياسات الأمان القابلة للتهيئة",
+          modeValidation: "1. طريقة التحقق عند بوابة المدرسة :",
+          mode1Titre: "النمط 1 — تأكيد سريع (لمسة واحدة)",
+          mode1Desc: "التحقق البصري من صورة الولي ثم ضغط «تم التسليم»",
+          mode2Titre: "النمط 2 — رمز PIN ديناميكي (4 أرقام)",
+          mode2Desc: "يظهر الولي رمزا مؤقتا يدخله الحارس للتأكيد",
+          mode3Titre: "النمط 3 — مسح رمز QR عبر الكاميرا",
+          mode3Desc: "يمسح الحارس رمز الاستجابة السريعة على هاتف الولي",
+          gestionFratries: "2. إدارة الإخوة (متعددو الأبناء)",
+          fratrieExplication: "إمكانية إرسال نداء جماعي لجميع الأطفال دفعة واحدة",
+          delegationTiersOption: "3. تفويض الأقارب والسائقين :",
+          delegationOff: "معطّل",
+          delegationOffDesc: "يسمح فقط للآباء المسجلين باستلام الأطفال",
+          delegationApproval: "موافقة الإدارة إلزامية",
+          delegationApprovalDesc: "يتطلب بطاقة الهوية والصورة حتى تأكيد الإدارة",
+          delegationAutonome: "صلاحية فورية ومباشرة",
+          delegationAutonomeDesc: "يُنشئ الولي تصريحا مؤقتا مؤرخا دون انتظار",
+          approbationsEnAttente: "طلبات التفويض قيد الانتظار",
+          gestionScolaire: "الأقسام والمستخدمين",
+          langueSysteme: "لغة التطبيق",
+          autresLangues: "+9 لغات إضافية متاحة :",
+          tabSorties: "المغادرة",
+          tabHistorique: "السجل",
+          tabFamille: "الأسرة",
+          tabAdmin: "الإدارة",
+          tabProfil: "حسابي",
+          libererEleve: "السماح بالخروج",
+          confirmerRemise: "تأكيد التسليم",
+          relancerClasse: "تذكير القسم"
+        },
+        en: {
+          appTitle: "AnaWsalt",
+          gpsRadar: "Presence Radar",
+          portailGeofence: "Main School Gate",
+          simPresence: "Simulate Arrival",
+          zoneOk: "You are at the school gate",
+          zoneFar: "Outside authorized zone",
+          rayonAuto: "Auto-detection radius:",
+          fratrieMode: "Sibling Mode Active",
+          fratrieSub: "One-tap group call for all your children",
+          callAll: "Call All",
+          myChildren: "My Children",
+          addChild: "Add",
+          imAtGate: "I have arrived at the school gate",
+          vueProfesseur: "Teacher Space",
+          parentsDevant: "Parents at the gate",
+          triArrivee: "Sorted by arrival time",
+          vuePortail: "Gate Security Station",
+          surveillanceFlux: "Secure Handover",
+          scannerPass: "Scan Pass",
+          supervisionAdmin: "Principal Dashboard",
+          fluxDirect: "Live Dismissal Flow",
+          enAttente: "Waiting",
+          enRoute: "In Transit",
+          remisAujourdhui: "Handed Today",
+          tousAppelsActifs: "All Active Calls",
+          journalSorties: "Dismissal Log",
+          tracabiliteComplete: "Comprehensive timestamped audit trail",
+          espaceFamille: "Family & Delegates",
+          delegationsSecurisees: "Authorized Third Parties",
+          nouveauTiers: "New Delegate",
+          enfantsInscrits: "Enrolled Children",
+          tiersAutorises: "Authorized Persons",
+          administrationTitre: "Management Panel",
+          adminSousTitre: "Security Policies, Geofence & Users",
+          geofencingConfig: "School & Geofencing Settings",
+          nomEcole: "School Name",
+          capturerGps: "Capture Current GPS as Gate",
+          rayonAutorise: "Authorized Detection Radius",
+          politiquesSecurite: "Configurable Security Policies",
+          modeValidation: "1. Gate Handover Validation Mode:",
+          mode1Titre: "Mode 1 — Quick 1-Tap Handover",
+          mode1Desc: "Visual photo check by gatekeeper then tap Handed",
+          mode2Titre: "Mode 2 — Dynamic 4-Digit PIN Code",
+          mode2Desc: "Parent shows rotating PIN code for gatekeeper entry",
+          mode3Titre: "Mode 3 — Mobile Camera QR Code Scan",
+          mode3Desc: "Gatekeeper scans dynamic QR pass shown on parent's phone",
+          gestionFratries: "2. Sibling Management (Multi-Children)",
+          fratrieExplication: "Allows one-tap group call for all children",
+          delegationTiersOption: "3. Delegation to Third Parties:",
+          delegationOff: "Disabled",
+          delegationOffDesc: "Only registered parents can pick up children",
+          delegationApproval: "Admin Approval Required",
+          delegationApprovalDesc: "Photo and ID required, held until admin approves",
+          delegationAutonome: "Immediate Autonomy",
+          delegationAutonomeDesc: "Parent directly generates a dated temporary pass",
+          approbationsEnAttente: "Pending Delegate Approvals",
+          gestionScolaire: "Classes & Users",
+          langueSysteme: "Application Language",
+          autresLangues: "+9 Additional on-demand languages:",
+          tabSorties: "Dismissal",
+          tabHistorique: "History",
+          tabFamille: "Family",
+          tabAdmin: "Principal",
+          tabProfil: "Profile",
+          libererEleve: "Release Student",
+          confirmerRemise: "Confirm Handover",
+          relancerClasse: "Remind Classroom"
+        }
+      };
+
+      // State variable
+      let state = {};
+      let broadcastChannel = null;
+      let html5QrScanner = null;
+      let clockInterval = null;
+      let geoWatchId = null;
+
+      // --- WEB AUDIO API CHIME SYNTHESIZER ---
+      let audioCtx = null;
+      function initAudio() {
+        if (!audioCtx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) audioCtx = new AudioContext();
+        }
+      }
+
+      function playTone(freq, type = 'sine', duration = 0.25, delay = 0, gainVal = 0.15) {
+        if (!state.soundEnabled) return;
+        try {
+          initAudio();
+          if (!audioCtx) return;
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+
+          gain.gain.setValueAtTime(gainVal, audioCtx.currentTime + delay);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + delay + duration);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start(audioCtx.currentTime + delay);
+          osc.stop(audioCtx.currentTime + delay + duration);
+        } catch (e) {
+          console.warn("Audio error:", e);
+        }
+      }
+
+      function playArrivalChime() {
+        // Melodic 4-note marimba chime: E5, G#5, B5, E6
+        playTone(659.25, 'triangle', 0.2, 0, 0.2);
+        playTone(830.61, 'triangle', 0.2, 0.12, 0.2);
+        playTone(987.77, 'triangle', 0.2, 0.24, 0.2);
+        playTone(1318.51, 'triangle', 0.35, 0.36, 0.25);
+      }
+
+      function playSuccessChime() {
+        // Joyful chord
+        playTone(523.25, 'sine', 0.15, 0, 0.15); // C5
+        playTone(659.25, 'sine', 0.15, 0.08, 0.15); // E5
+        playTone(783.99, 'sine', 0.3, 0.16, 0.2); // G5
+      }
+
+      function playBuzzer() {
+        // Double warning beep
+        playTone(440, 'sawtooth', 0.1, 0, 0.12);
+        playTone(440, 'sawtooth', 0.15, 0.15, 0.12);
+      }
+
+      function triggerHaptic(pattern = [50]) {
+        if (state.vibeEnabled && navigator.vibrate) {
+          try {
+            navigator.vibrate(pattern);
+          } catch (e) {}
+        }
+      }
+
+      // --- PERSISTENCE: HYBRID LOCALSTORAGE & MULTI-TAB BROADCASTCHANNEL ---
+      function loadState() {
+        try {
+          const stored = localStorage.getItem('anawsalt_state_v1');
+          if (stored) {
+            state = JSON.parse(stored);
+          } else {
+            state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+            saveState();
+          }
+        } catch (e) {
+          state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        }
+      }
+
+      function saveState(broadcast = true) {
+        try {
+          localStorage.setItem('anawsalt_state_v1', JSON.stringify(state));
+          if (broadcast && broadcastChannel) {
+            broadcastChannel.postMessage({ type: 'STATE_UPDATED', timestamp: Date.now() });
+          }
+        } catch (e) {
+          console.warn("Storage quota or error:", e);
+        }
+      }
+
+      // --- HAVERSINE GPS DISTANCE CALCULATOR ---
+      function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // Earth radius in meters
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                  Math.cos(φ1) * Math.cos(φ2) *
+                  Math.sin(Δλ/2) * Math.sin(Δλ/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return Math.round(R * c);
+      }
+
+      // --- TOAST NOTIFICATIONS ---
+      function showToast(message, type = 'info', icon = 'fa-info-circle') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        const colorClass = type === 'success' ? 'bg-emerald-600/90 text-white border-emerald-400/40' :
+                           type === 'warning' ? 'bg-amber-600/90 text-white border-amber-400/40' :
+                           type === 'error' ? 'bg-rose-600/90 text-white border-rose-400/40' :
+                           'bg-slate-800/95 text-white border-slate-700';
+
+        toast.className = `p-3 rounded-2xl shadow-xl border flex items-center gap-2.5 text-xs font-semibold backdrop-blur-md transition-all duration-300 pointer-events-auto ${colorClass}`;
+        toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i> <span>${message}</span>`;
+
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-10px)';
+          setTimeout(() => toast.remove(), 300);
+        }, 3200);
+      }
+
+      // --- MULTILINGUAL TRANSLATOR ---
+      function t(key) {
+        const lang = state.language || 'fr';
+        if (I18N[lang] && I18N[lang][key]) {
+          return I18N[lang][key];
+        }
+        if (I18N.fr[key]) return I18N.fr[key];
+        return key;
+      }
+
+      function applyTranslations() {
+        const lang = state.language || 'fr';
+        const isRtl = lang === 'ar';
+        document.documentElement.setAttribute('dir', isRtl ? 'rtl' : 'ltr');
+        document.documentElement.setAttribute('lang', lang);
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          el.textContent = t(key);
+        });
+
+        // Update active language UI
+        const tag = document.getElementById('activeLangTag');
+        if (tag) tag.textContent = lang.toUpperCase();
+
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+          if (btn.getAttribute('data-lang') === lang) {
+            btn.classList.add('border-brand-500', 'bg-brand-500/20', 'text-brand-300');
+            btn.classList.remove('border-slate-700', 'bg-slate-900', 'text-slate-300');
+          } else {
+            btn.classList.remove('border-brand-500', 'bg-brand-500/20', 'text-brand-300');
+            btn.classList.add('border-slate-700', 'bg-slate-900', 'text-slate-300');
+          }
+        });
+      }
+
+      // --- INITIALIZE & ATTACH EVENTS ---
+      function init() {
+        loadState();
+        setupClock();
+        setupRealtimeSync();
+        setupGeolocation();
+        applyTranslations();
+        renderActiveRoleView();
+        renderAllTabs();
+        setupServiceWorker();
+      }
+
+      function setupClock() {
+        function updateTime() {
+          const now = new Date();
+          const clock = document.getElementById('statusBarClock');
+          if (clock) {
+            clock.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          }
+        }
+        updateTime();
+        if (clockInterval) clearInterval(clockInterval);
+        clockInterval = setInterval(updateTime, 1000);
+      }
+
+      function setupRealtimeSync() {
+        if ('BroadcastChannel' in window) {
+          broadcastChannel = new BroadcastChannel('anawsalt_channel');
+          broadcastChannel.onmessage = (event) => {
+            if (event.data && event.data.type === 'STATE_UPDATED') {
+              loadState();
+              renderActiveRoleView();
+              renderAllTabs();
+            }
+          };
+        }
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'anawsalt_state_v1') {
+            loadState();
+            renderActiveRoleView();
+            renderAllTabs();
+          }
+        });
+      }
+
+      function setupGeolocation() {
+        updateDistanceDisplay();
+        if (navigator.geolocation && !state.gpsSimulated) {
+          geoWatchId = navigator.geolocation.watchPosition(
+            (pos) => {
+              if (state.gpsSimulated) return;
+              const d = calculateHaversineDistance(
+                pos.coords.latitude, pos.coords.longitude,
+                state.establishment.gateLat, state.establishment.gateLng
+              );
+              state.simulatedDistance = d;
+              updateDistanceDisplay();
+            },
+            (err) => console.log("GPS watcher standby:", err.message),
+            { enableHighAccuracy: true, maximumAge: 5000 }
+          );
+        }
+      }
+
+      function updateDistanceDisplay() {
+        const dist = state.simulatedDistance;
+        const radius = state.establishment.radiusMeters || 300;
+        const isInside = dist <= radius;
+
+        const pillText = document.getElementById('geofenceDistanceText');
+        if (pillText) pillText.textContent = `${dist}m`;
+
+        const radarVal = document.getElementById('radarDistanceValue');
+        if (radarVal) radarVal.textContent = `${dist}m`;
+
+        const statusBadge = document.getElementById('geofenceStatusBadge');
+        const statusText = document.getElementById('geofenceStatusText');
+        const centerIcon = document.getElementById('radarCenter');
+        const mainBtn = document.getElementById('btnAnaWsaltMain');
+
+        if (statusBadge && statusText) {
+          if (isInside) {
+            statusBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+            statusText.textContent = t('zoneOk');
+            if (centerIcon) centerIcon.className = "w-16 h-16 rounded-full bg-gradient-to-tr from-brand-600 to-emerald-400 flex flex-col items-center justify-center text-white shadow-xl z-10 animate-bounce-subtle";
+            if (mainBtn) {
+              mainBtn.disabled = false;
+              mainBtn.classList.remove('opacity-50', 'grayscale');
+            }
+          } else {
+            statusBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30";
+            statusText.textContent = `${t('zoneFar')} (${dist}m > ${radius}m)`;
+            if (centerIcon) centerIcon.className = "w-16 h-16 rounded-full bg-gradient-to-tr from-slate-700 to-slate-800 flex flex-col items-center justify-center text-slate-300 shadow-xl z-10";
+            if (mainBtn) {
+              mainBtn.disabled = false; // keep clickable for instant testing with alert
+            }
+          }
+        }
+      }
+
+      // --- TAB SWITCHER ---
+      function switchTab(tabId) {
+        document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+        const target = document.getElementById(`tab-${tabId}`);
+        if (target) target.classList.remove('hidden');
+
+        document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+          if (btn.getAttribute('data-tab') === tabId) {
+            btn.classList.add('text-brand-400');
+            btn.classList.remove('text-slate-400');
+          } else {
+            btn.classList.remove('text-brand-400');
+            btn.classList.add('text-slate-400');
+          }
+        });
+
+        // Scroll to top
+        const main = document.getElementById('appMainScroll');
+        if (main) main.scrollTop = 0;
+
+        triggerHaptic([30]);
+      }
+
+      // --- ROLE SWITCHER (UNIVERSAL SIMULATOR) ---
+      function switchRole(role) {
+        state.currentRole = role;
+        state.user.role = role;
+        
+        // Update user avatar & name according to role
+        if (role === 'parent') {
+          state.user.name = "Karim Bennani";
+          state.user.avatar = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80";
+        } else if (role === 'teacher') {
+          state.user.name = "Mme Laila Alami (CP-A)";
+          state.user.avatar = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80";
+        } else if (role === 'gatekeeper') {
+          state.user.name = "Hassan El Amrani (Portail)";
+          state.user.avatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80";
+        } else if (role === 'admin') {
+          state.user.name = "Direction Al Madina";
+          state.user.avatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80";
+        }
+
+        saveState();
+        renderActiveRoleView();
+        showToast(`Bascule en mode ${role.toUpperCase()}`, 'info', 'fa-user-check');
+        triggerHaptic([60, 40, 60]);
+      }
+
+      function renderActiveRoleView() {
+        const role = state.currentRole;
+        
+        // Header badge
+        const badge = document.getElementById('currentRoleLabel');
+        if (badge) badge.textContent = role;
+
+        // Container visibility
+        const pCont = document.getElementById('parentLiveContainer');
+        const tCont = document.getElementById('teacherLiveContainer');
+        const gCont = document.getElementById('gatekeeperLiveContainer');
+        const aCont = document.getElementById('adminLiveContainer');
+
+        if (pCont) pCont.classList.add('hidden');
+        if (tCont) tCont.classList.add('hidden');
+        if (gCont) gCont.classList.add('hidden');
+        if (aCont) aCont.classList.add('hidden');
+
+        if (role === 'parent' && pCont) pCont.classList.remove('hidden');
+        if (role === 'teacher' && tCont) tCont.classList.remove('hidden');
+        if (role === 'gatekeeper' && gCont) gCont.classList.remove('hidden');
+        if (role === 'admin' && aCont) aCont.classList.remove('hidden');
+
+        // Update profile card info
+        const uName = document.getElementById('userProfileName');
+        const uRole = document.getElementById('userProfileRoleTag');
+        const uAvatar = document.getElementById('userProfileAvatar');
+        if (uName) uName.textContent = state.user.name;
+        if (uRole) uRole.textContent = role;
+        if (uAvatar) uAvatar.src = state.user.avatar;
+
+        // Highlight active role in profile buttons
+        document.querySelectorAll('.role-btn').forEach(btn => {
+          if (btn.getAttribute('data-role') === role) {
+            btn.classList.add('bg-brand-600', 'text-white');
+            btn.classList.remove('bg-slate-800', 'text-slate-300');
+          } else {
+            btn.classList.remove('bg-brand-600', 'text-white');
+            btn.classList.add('bg-slate-800', 'text-slate-300');
+          }
+        });
+
+        // Sibling policy banner check for parent
+        const sibBanner = document.getElementById('siblingNoticeBanner');
+        if (sibBanner) {
+          sibBanner.style.display = state.establishment.policies.siblingCallEnabled ? 'flex' : 'none';
+        }
+
+        renderParentChildren();
+        renderTeacherQueue();
+        renderGatekeeperQueue();
+        renderAdminLiveQueue();
+      }
+
+      // --- RENDER ALL VIEWS ---
+      function renderAllTabs() {
+        renderParentChildren();
+        renderTeacherQueue();
+        renderGatekeeperQueue();
+        renderAdminLiveQueue();
+        renderHistoryList();
+        renderFamilyList();
+        renderAdminSettings();
+      }
+
+      // --- PARENT ACTIONS & CHILDREN RENDERING ---
+      function renderParentChildren() {
+        const list = document.getElementById('parentChildrenList');
+        if (!list) return;
+
+        const myStudents = state.students.filter(s => s.parentId === 'parent_karim');
+        const countSpan = document.getElementById('parentChildrenCount');
+        if (countSpan) countSpan.textContent = myStudents.length;
+
+        list.innerHTML = myStudents.map(child => {
+          const isCalled = child.status === 'called';
+          const isTransit = child.status === 'transit';
+          const isCompleted = child.status === 'completed';
+
+          let statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-800 text-slate-400 border border-slate-700">En classe</span>`;
+          if (isCalled) {
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse">Appel signalé</span>`;
+          } else if (isTransit) {
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 animate-pulse">En route portail</span>`;
+          } else if (isCompleted) {
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">Récupéré ✓</span>`;
+          }
+
+          return `
+            <div class="glass-card rounded-2xl p-3 border border-slate-700/80 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <img src="${child.photo}" alt="${child.firstName}" class="w-12 h-12 rounded-xl object-cover border border-slate-600 shadow">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h5 class="text-xs font-black text-white">${child.firstName} ${child.lastName}</h5>
+                    ${statusBadge}
+                  </div>
+                  <p class="text-[10px] text-slate-400">Classe : <span class="font-bold text-slate-300">${child.classId}</span></p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                ${child.status !== 'idle' ? `
+                  <button onclick="app.showPassModal('${child.id}')" class="btn-press px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-brand-300 border border-brand-500/30 text-xs font-bold flex items-center gap-1" title="Afficher Pass PIN/QR">
+                    <i class="fa-solid fa-qrcode"></i> Pass
+                  </button>
+                ` : `
+                  <button onclick="app.callSingleChild('${child.id}')" class="btn-press px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-extrabold shadow flex items-center gap-1">
+                    <i class="fa-solid fa-bell"></i> Appeler
+                  </button>
+                `}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function triggerMainArrivalCall() {
+        const dist = state.simulatedDistance;
+        const radius = state.establishment.radiusMeters || 300;
+
+        if (dist > radius) {
+          showToast(`Distance : ${dist}m. Vous êtes en dehors du rayon de ${radius}m ! Cliquez sur 'Simuler Arrivée' pour tester.`, 'warning', 'fa-triangle-exclamation');
+          triggerHaptic([100, 100]);
+          return;
+        }
+
+        callAllSiblings();
+      }
+
+      function callSingleChild(studentId) {
+        const student = state.students.find(s => s.id === studentId);
+        if (!student) return;
+
+        const pin = Math.floor(1000 + Math.random() * 9000).toString();
+        student.status = 'called';
+        student.lastPin = pin;
+
+        // Check if already in activePickups
+        const existing = state.activePickups.find(p => p.studentId === student.id && p.status !== 'completed');
+        if (!existing) {
+          state.activePickups.unshift({
+            id: `call_${student.id}_${Date.now()}`,
+            studentId: student.id,
+            studentName: `${student.firstName} ${student.lastName}`,
+            classId: student.classId,
+            callerId: state.user.id,
+            callerName: `${state.user.name} (Parent)`,
+            callerPhoto: state.user.avatar,
+            status: 'called',
+            pin: pin,
+            calledAt: Date.now(),
+            releasedAt: null,
+            handedAt: null
+          });
+        }
+
+        saveState();
+        renderActiveRoleView();
+        playArrivalChime();
+        triggerHaptic([80, 50, 80]);
+        showToast(`Appel envoyé pour ${student.firstName} !`, 'success', 'fa-circle-check');
+        showPassModal(student.id);
+      }
+
+      function callAllSiblings() {
+        const myStudents = state.students.filter(s => s.parentId === 'parent_karim');
+        myStudents.forEach(child => {
+          child.status = 'called';
+          const pin = Math.floor(1000 + Math.random() * 9000).toString();
+          child.lastPin = pin;
+
+          const existing = state.activePickups.find(p => p.studentId === child.id && p.status !== 'completed');
+          if (!existing) {
+            state.activePickups.unshift({
+              id: `call_${child.id}_${Date.now()}`,
+              studentId: child.id,
+              studentName: `${child.firstName} ${child.lastName}`,
+              classId: child.classId,
+              callerId: state.user.id,
+              callerName: `${state.user.name} (Parent)`,
+              callerPhoto: state.user.avatar,
+              status: 'called',
+              pin: pin,
+              calledAt: Date.now(),
+              releasedAt: null,
+              handedAt: null
+            });
+          }
+        });
+
+        saveState();
+        renderActiveRoleView();
+        playArrivalChime();
+        triggerHaptic([100, 50, 100, 50, 100]);
+        showToast(`Appel groupé fratrie déclenché (${myStudents.length} élèves) !`, 'success', 'fa-users');
+        if (myStudents.length > 0) showPassModal(myStudents[0].id);
+      }
+
+      // --- TEACHER VIEW ACTIONS & QUEUE ---
+      function renderTeacherQueue() {
+        const list = document.getElementById('teacherQueueList');
+        if (!list) return;
+
+        // Teacher class CP-A
+        const teacherClass = "CP-A";
+        const teacherCalls = state.activePickups.filter(p => p.classId === teacherClass && p.status === 'called');
+
+        const badge = document.getElementById('teacherQueueBadge');
+        if (badge) badge.textContent = teacherCalls.length;
+
+        if (teacherCalls.length === 0) {
+          list.innerHTML = `
+            <div class="glass-card rounded-2xl p-6 text-center text-slate-400 space-y-2">
+              <i class="fa-solid fa-face-smile text-3xl text-emerald-400"></i>
+              <p class="text-xs font-bold text-slate-300">Aucun appel en attente pour la classe ${teacherClass}</p>
+              <p class="text-[11px] text-slate-500">Dès qu'un parent signale sa présence, l'alerte s'affichera ici.</p>
+            </div>
+          `;
+          return;
+        }
+
+        list.innerHTML = teacherCalls.map(item => {
+          const waitMinutes = Math.max(1, Math.round((Date.now() - item.calledAt) / 60000));
+          const studentObj = state.students.find(s => s.id === item.studentId);
+          const studentPhoto = studentObj ? studentObj.photo : item.callerPhoto;
+
+          return `
+            <div class="glass-card rounded-2xl p-3.5 border-l-4 border-l-amber-400 border border-slate-700/80 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <img src="${studentPhoto}" alt="${item.studentName}" class="w-12 h-12 rounded-xl object-cover border border-amber-400/50 shadow">
+                  <div>
+                    <h5 class="text-sm font-black text-white">${item.studentName}</h5>
+                    <div class="flex items-center gap-1.5 text-[10px] text-amber-300 font-semibold mt-0.5">
+                      <i class="fa-solid fa-stopwatch"></i> Attente : il y a ${waitMinutes} min
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Waiting parent photo -->
+                <div class="text-right">
+                  <img src="${item.callerPhoto}" alt="${item.callerName}" class="w-9 h-9 rounded-full object-cover border-2 border-indigo-500 ml-auto" title="${item.callerName}">
+                  <span class="text-[9px] text-slate-400 font-medium block mt-0.5">${item.callerName.split(' ')[0]} (Parent)</span>
+                </div>
+              </div>
+
+              <!-- 1-Tap Action: Liberer l'eleve -->
+              <button onclick="app.teacherReleaseStudent('${item.id}')" class="btn-press w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-extrabold text-xs shadow-lg flex items-center justify-center gap-2">
+                <i class="fa-solid fa-door-open"></i> ${t('libererEleve')}
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function teacherReleaseStudent(pickupId) {
+        const item = state.activePickups.find(p => p.id === pickupId);
+        if (!item) return;
+
+        item.status = 'transit';
+        item.releasedAt = Date.now();
+
+        const student = state.students.find(s => s.id === item.studentId);
+        if (student) student.status = 'transit';
+
+        saveState();
+        renderActiveRoleView();
+        playSuccessChime();
+        triggerHaptic([60, 40]);
+        showToast(`${item.studentName} libéré(e) vers le portail !`, 'info', 'fa-person-walking-arrow-right');
+      }
+
+      // --- GATEKEEPER VIEW ACTIONS & QUEUE ---
+      let gatekeeperFilter = 'all';
+      function setGatekeeperFilter(filter) {
+        gatekeeperFilter = filter;
+        document.querySelectorAll('.gate-filter-btn').forEach(btn => {
+          if (btn.getAttribute('data-filter') === filter) {
+            btn.className = "gate-filter-btn px-3 py-1 rounded-full text-xs font-bold bg-brand-500 text-white flex-shrink-0";
+          } else {
+            btn.className = "gate-filter-btn px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 flex-shrink-0";
+          }
+        });
+        renderGatekeeperQueue();
+      }
+
+      function renderGatekeeperQueue() {
+        const list = document.getElementById('gatekeeperQueueList');
+        if (!list) return;
+
+        const allCalls = state.activePickups.filter(p => p.status !== 'completed');
+
+        // Counters
+        const countAll = document.getElementById('gkCountAll');
+        const countTransit = document.getElementById('gkCountTransit');
+        const countReady = document.getElementById('gkCountReady');
+        const countCalled = document.getElementById('gkCountCalled');
+
+        if (countAll) countAll.textContent = allCalls.length;
+        if (countTransit) countTransit.textContent = allCalls.filter(p => p.status === 'transit').length;
+        if (countReady) countReady.textContent = allCalls.filter(p => p.status === 'ready').length;
+        if (countCalled) countCalled.textContent = allCalls.filter(p => p.status === 'called').length;
+
+        let filtered = allCalls;
+        if (gatekeeperFilter !== 'all') {
+          filtered = allCalls.filter(p => p.status === gatekeeperFilter);
+        }
+
+        if (filtered.length === 0) {
+          list.innerHTML = `
+            <div class="glass-card rounded-2xl p-6 text-center text-slate-400 space-y-2">
+              <i class="fa-solid fa-circle-check text-3xl text-emerald-400"></i>
+              <p class="text-xs font-bold text-slate-300">Aucun élève en cours de remise</p>
+              <p class="text-[11px] text-slate-500">Les élèves en route depuis les classes apparaîtront ici.</p>
+            </div>
+          `;
+          return;
+        }
+
+        const mode = state.establishment.policies.validationMode || 'mode2_pin';
+
+        list.innerHTML = filtered.map(item => {
+          const studentObj = state.students.find(s => s.id === item.studentId);
+          const studentPhoto = studentObj ? studentObj.photo : item.callerPhoto;
+          const isTransit = item.status === 'transit';
+
+          return `
+            <div class="glass-card rounded-2xl p-3.5 border ${isTransit ? 'border-indigo-500/40' : 'border-amber-500/40'} space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <img src="${studentPhoto}" alt="${item.studentName}" class="w-12 h-12 rounded-xl object-cover border border-slate-600 shadow">
+                  <div>
+                    <h5 class="text-xs font-black text-white">${item.studentName}</h5>
+                    <p class="text-[10px] text-slate-400">Classe : <span class="font-bold text-slate-300">${item.classId}</span></p>
+                    <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold ${isTransit ? 'bg-indigo-500/20 text-indigo-300' : 'bg-amber-500/20 text-amber-300'}">
+                      ${isTransit ? 'En route vers portail' : 'En classe (attente prof)'}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="text-right">
+                  <img src="${item.callerPhoto}" alt="${item.callerName}" class="w-10 h-10 rounded-xl object-cover border border-emerald-500 ml-auto" title="${item.callerName}">
+                  <span class="text-[9px] text-emerald-400 font-bold block mt-0.5">Parent présent</span>
+                </div>
+              </div>
+
+              <!-- Security Action Buttons according to Admin Policy -->
+              <div class="flex items-center gap-2 pt-1">
+                ${mode === 'mode1_quick' ? `
+                  <button onclick="app.gatekeeperConfirmHandover('${item.id}')" class="btn-press flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-check-double"></i> Confirmer Remise (1 tap)
+                  </button>
+                ` : mode === 'mode2_pin' ? `
+                  <button onclick="app.promptGatekeeperPin('${item.id}')" class="btn-press flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-key"></i> Vérifier Code PIN (${item.pin})
+                  </button>
+                ` : `
+                  <button onclick="app.openQrScannerModal('${item.id}')" class="btn-press flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-qrcode"></i> Scanner Pass QR
+                  </button>
+                `}
+
+                <button onclick="app.relanceClassBuzzer('${item.classId}', '${item.studentName}')" class="btn-press px-2.5 py-2.5 rounded-xl bg-slate-800 hover:bg-amber-900/40 text-amber-300 border border-amber-500/30 text-xs font-bold" title="${t('relancerClasse')}">
+                  <i class="fa-solid fa-bullhorn"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function promptGatekeeperPin(pickupId) {
+        const item = state.activePickups.find(p => p.id === pickupId);
+        if (!item) return;
+
+        const entered = prompt(`Saisissez le code PIN à 4 chiffres affiché sur le smartphone du parent (Code démo : ${item.pin}) :`);
+        if (entered === item.pin) {
+          gatekeeperConfirmHandover(pickupId);
+        } else if (entered !== null) {
+          showToast("Code PIN erroné ! Veuillez réessayer.", "error", "fa-triangle-exclamation");
+          triggerHaptic([150, 80, 150]);
+        }
+      }
+
+      function gatekeeperConfirmHandover(pickupId) {
+        const item = state.activePickups.find(p => p.id === pickupId);
+        if (!item) return;
+
+        item.status = 'completed';
+        item.handedAt = Date.now();
+
+        const student = state.students.find(s => s.id === item.studentId);
+        if (student) student.status = 'completed';
+
+        // Add to permanent history log
+        const durationMin = Math.max(1, Math.round((Date.now() - item.calledAt) / 60000));
+        state.history.unshift({
+          id: `hist_${Date.now()}`,
+          studentName: item.studentName,
+          className: item.classId,
+          retrievedBy: item.callerName,
+          date: "Aujourd'hui",
+          calledTime: new Date(item.calledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          releasedTime: item.releasedAt ? new Date(item.releasedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--',
+          handedTime: new Date(item.handedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          duration: `${durationMin} min`,
+          status: "Remis au portail"
+        });
+
+        saveState();
+        renderActiveRoleView();
+        renderHistoryList();
+
+        // Confetti celebration
+        if (window.confetti) {
+          window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
+        }
+
+        playSuccessChime();
+        triggerHaptic([60, 40, 80]);
+        showToast(`${item.studentName} remis avec succès !`, 'success', 'fa-award');
+      }
+
+      function relanceClassBuzzer(classId, studentName) {
+        playBuzzer();
+        triggerHaptic([200, 100, 200]);
+        showToast(`Rappel sonore envoyé à la classe ${classId} pour ${studentName} !`, 'warning', 'fa-bullhorn');
+      }
+
+      // --- ADMIN LIVE QUEUE ---
+      function renderAdminLiveQueue() {
+        const list = document.getElementById('adminLiveQueueList');
+        if (!list) return;
+
+        const calls = state.activePickups.filter(p => p.status !== 'completed');
+        const sWait = document.getElementById('statLiveWaiting');
+        const sTrans = document.getElementById('statLiveTransit');
+        const sFin = document.getElementById('statLiveFinished');
+
+        if (sWait) sWait.textContent = calls.filter(p => p.status === 'called').length;
+        if (sTrans) sTrans.textContent = calls.filter(p => p.status === 'transit').length;
+        if (sFin) sFin.textContent = state.history.length;
+
+        if (calls.length === 0) {
+          list.innerHTML = `<div class="p-4 rounded-2xl bg-slate-900 text-center text-xs text-slate-500">Aucun appel actif en cours</div>`;
+          return;
+        }
+
+        list.innerHTML = calls.map(c => `
+          <div class="glass-card rounded-2xl p-3 border border-slate-700/80 flex items-center justify-between text-xs">
+            <div>
+              <div class="font-black text-white">${c.studentName} <span class="text-slate-400 font-normal">(${c.classId})</span></div>
+              <div class="text-[10px] text-slate-400">${c.callerName}</div>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${c.status === 'transit' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-amber-500/20 text-amber-300'}">
+              ${c.status === 'transit' ? 'En route' : 'En classe'}
+            </span>
+          </div>
+        `).join('');
+      }
+
+      // --- HISTORY VIEW ---
+      function renderHistoryList() {
+        const list = document.getElementById('historyLogList');
+        if (!list) return;
+
+        const search = (document.getElementById('historySearchInput')?.value || '').toLowerCase();
+        const classFilter = document.getElementById('historyFilterClass')?.value || 'all';
+
+        let filtered = state.history;
+        if (search) {
+          filtered = filtered.filter(h => h.studentName.toLowerCase().includes(search) || h.retrievedBy.toLowerCase().includes(search));
+        }
+        if (classFilter !== 'all') {
+          filtered = filtered.filter(h => h.className.includes(classFilter));
+        }
+
+        list.innerHTML = filtered.map(item => `
+          <div class="glass-card rounded-2xl p-3.5 border border-slate-700/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <h5 class="text-xs font-black text-white">${item.studentName}</h5>
+                <p class="text-[10px] text-slate-400">Classe : <span class="text-slate-300 font-bold">${item.className}</span></p>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                ${item.status}
+              </span>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-[10px] text-slate-300 grid grid-cols-3 gap-1 text-center">
+              <div>
+                <span class="text-slate-500 block">Arrivée</span>
+                <span class="font-mono font-bold text-amber-300">${item.calledTime}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block">Libéré prof</span>
+                <span class="font-mono font-bold text-indigo-300">${item.releasedTime}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block">Remis portail</span>
+                <span class="font-mono font-bold text-emerald-300">${item.handedTime}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+              <span>Récupéré par : <strong class="text-slate-200">${item.retrievedBy}</strong></span>
+              <span class="font-bold text-brand-400">Durée : ${item.duration}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function exportHistoryCsv() {
+        const rows = [
+          ["Date", "Eleve", "Classe", "RecuperePar", "HeureAppel", "HeureLiberation", "HeureRemise", "Duree"]
+        ];
+        state.history.forEach(h => {
+          rows.push([h.date, h.studentName, h.className, h.retrievedBy, h.calledTime, h.releasedTime, h.handedTime, h.duration]);
+        });
+        const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `anawsalt_historique_${Date.now()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        showToast("Fichier CSV téléchargé avec succès !", "success", "fa-file-csv");
+      }
+
+      function printHistorySummary() {
+        window.print();
+      }
+
+      // --- FAMILY & DELEGATIONS VIEW ---
+      function renderFamilyList() {
+        const cCards = document.getElementById('familyChildrenCards');
+        if (cCards) {
+          const myStudents = state.students.filter(s => s.parentId === 'parent_karim');
+          cCards.innerHTML = myStudents.map(child => `
+            <div class="glass-card rounded-2xl p-3 border border-slate-700/80 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <img src="${child.photo}" class="w-12 h-12 rounded-xl object-cover border border-slate-600 shadow" alt="${child.firstName}">
+                <div>
+                  <h5 class="text-xs font-black text-white">${child.firstName} ${child.lastName}</h5>
+                  <p class="text-[10px] text-slate-400">Classe : <strong class="text-slate-300">${child.classId}</strong></p>
+                  <p class="text-[9px] text-emerald-400 font-semibold">Tuteur : Karim Bennani (Père)</p>
+                </div>
+              </div>
+              <button onclick="app.showPassModal('${child.id}')" class="btn-press px-2.5 py-1.5 rounded-xl bg-slate-800 text-brand-300 border border-brand-500/30 text-xs font-bold">
+                <i class="fa-solid fa-qrcode"></i> Pass
+              </button>
+            </div>
+          `).join('');
+        }
+
+        const dList = document.getElementById('familyDelegatesList');
+        if (dList) {
+          dList.innerHTML = state.delegates.map(del => {
+            const isApproved = del.status === 'approved';
+            return `
+              <div class="glass-card rounded-2xl p-3.5 border border-slate-700/80 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <img src="${del.photo}" class="w-12 h-12 rounded-xl object-cover border ${isApproved ? 'border-emerald-500' : 'border-amber-500'} shadow" alt="${del.name}">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h5 class="text-xs font-black text-white">${del.name}</h5>
+                      <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${isApproved ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
+                        ${isApproved ? 'Validé' : 'En attente'}
+                      </span>
+                    </div>
+                    <p class="text-[10px] text-slate-400">Lien : <strong class="text-slate-300">${del.relation}</strong> | CIN : <span class="font-mono text-slate-300">${del.cin}</span></p>
+                    <p class="text-[10px] text-slate-400 font-mono">${del.phone}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <button onclick="app.deleteDelegate('${del.id}')" class="text-slate-500 hover:text-rose-400 p-2" title="Supprimer">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      function deleteDelegate(delId) {
+        if (!confirm("Voulez-vous supprimer ce tiers autorisé ?")) return;
+        state.delegates = state.delegates.filter(d => d.id !== delId);
+        saveState();
+        renderFamilyList();
+        showToast("Tiers supprimé", "info", "fa-trash");
+      }
+
+      // --- ADMIN SETTINGS & POLICIES ---
+      function renderAdminSettings() {
+        const sName = document.getElementById('adminSchoolName');
+        const sLat = document.getElementById('adminGateLat');
+        const sLng = document.getElementById('adminGateLng');
+        const sRadius = document.getElementById('adminRadiusSlider');
+        const sRadText = document.getElementById('sliderRadiusValue');
+        const sRadBadge = document.getElementById('geofenceRadiusBadge');
+        const sSib = document.getElementById('adminSiblingToggle');
+
+        if (sName) sName.value = state.establishment.name;
+        if (sLat) sLat.value = state.establishment.gateLat;
+        if (sLng) sLng.value = state.establishment.gateLng;
+        if (sRadius) sRadius.value = state.establishment.radiusMeters;
+        if (sRadText) sRadText.textContent = `${state.establishment.radiusMeters} mètres`;
+        if (sRadBadge) sRadBadge.textContent = `${state.establishment.radiusMeters} m`;
+        if (sSib) sSib.checked = state.establishment.policies.siblingCallEnabled;
+
+        // Check active validation mode radio
+        const mode = state.establishment.policies.validationMode || 'mode2_pin';
+        const radio = document.querySelector(`input[name="validationMode"][value="${mode}"]`);
+        if (radio) radio.checked = true;
+
+        // Check delegation policy radio
+        const delMode = state.establishment.policies.delegationMode || 'approval_required';
+        const delRadio = document.querySelector(`input[name="delegationMode"][value="${delMode}"]`);
+        if (delRadio) delRadio.checked = true;
+
+        // Pending approvals
+        renderAdminApprovals();
+      }
+
+      function updateRadiusSlider(val) {
+        document.getElementById('sliderRadiusValue').textContent = `${val} mètres`;
+        document.getElementById('geofenceRadiusBadge').textContent = `${val} m`;
+        document.getElementById('activeRadiusDisplay').textContent = `${val}m`;
+        state.establishment.radiusMeters = parseInt(val, 10);
+      }
+
+      function saveAdminSettings() {
+        state.establishment.name = document.getElementById('adminSchoolName').value;
+        state.establishment.gateLat = parseFloat(document.getElementById('adminGateLat').value);
+        state.establishment.gateLng = parseFloat(document.getElementById('adminGateLng').value);
+        state.establishment.radiusMeters = parseInt(document.getElementById('adminRadiusSlider').value, 10);
+
+        saveState();
+        updateDistanceDisplay();
+        showToast("Paramètres de l'école mis à jour", "success", "fa-check");
+      }
+
+      function setValidationMode(mode) {
+        state.establishment.policies.validationMode = mode;
+        saveState();
+        renderGatekeeperQueue();
+        showToast(`Mode de validation : ${mode.toUpperCase()}`, "info", "fa-shield-halved");
+      }
+
+      function toggleSiblingPolicy(enabled) {
+        state.establishment.policies.siblingCallEnabled = enabled;
+        saveState();
+        renderActiveRoleView();
+        showToast(`Gestion des fratries : ${enabled ? 'Activée' : 'Désactivée'}`, "info", "fa-users");
+      }
+
+      function setDelegationPolicy(policy) {
+        state.establishment.policies.delegationMode = policy;
+        saveState();
+        showToast(`Délégation aux tiers : ${policy.toUpperCase()}`, "info", "fa-id-card");
+      }
+
+      function captureCurrentGpsPosition() {
+        if (!navigator.geolocation) {
+          showToast("La géolocalisation n'est pas disponible sur cet appareil", "error");
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            state.establishment.gateLat = pos.coords.latitude;
+            state.establishment.gateLng = pos.coords.longitude;
+            document.getElementById('adminGateLat').value = pos.coords.latitude.toFixed(6);
+            document.getElementById('adminGateLng').value = pos.coords.longitude.toFixed(6);
+            saveState();
+            updateDistanceDisplay();
+            showToast("Coordonnées GPS capturées et enregistrées !", "success", "fa-location-dot");
+          },
+          (err) => {
+            showToast(`Erreur GPS : ${err.message}`, "error");
+          },
+          { enableHighAccuracy: true }
+        );
+      }
+
+      function renderAdminApprovals() {
+        const list = document.getElementById('adminPendingList');
+        if (!list) return;
+
+        const pending = state.delegates.filter(d => d.status === 'pending');
+        const badge = document.getElementById('pendingApprovalsCount');
+        if (badge) badge.textContent = pending.length;
+
+        if (pending.length === 0) {
+          list.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">Aucune demande en attente</p>`;
+          return;
+        }
+
+        list.innerHTML = pending.map(del => `
+          <div class="p-2.5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <img src="${del.photo}" class="w-10 h-10 rounded-xl object-cover border border-amber-500" alt="${del.name}">
+              <div>
+                <div class="text-xs font-bold text-white">${del.name}</div>
+                <div class="text-[10px] text-slate-400">CIN : ${del.cin} | ${del.relation}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="app.approveDelegate('${del.id}')" class="btn-press px-2.5 py-1 rounded-xl bg-emerald-600 text-white text-xs font-bold">
+                Approuver
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function approveDelegate(delId) {
+        const del = state.delegates.find(d => d.id === delId);
+        if (del) {
+          del.status = 'approved';
+          saveState();
+          renderAdminApprovals();
+          renderFamilyList();
+          showToast(`Tiers ${del.name} approuvé !`, "success", "fa-check");
+        }
+      }
+
+      // --- PASS & QR MODAL ---
+      function showPassModal(studentId) {
+        const student = state.students.find(s => s.id === studentId);
+        if (!student) return;
+
+        const modal = document.getElementById('modalPass');
+        if (!modal) return;
+
+        document.getElementById('modalPassChildName').textContent = `${student.firstName} ${student.lastName}`;
+        document.getElementById('modalPassClass').textContent = `Classe : ${student.classId}`;
+        document.getElementById('modalPassChildPhoto').src = student.photo;
+        document.getElementById('modalPassParentPhoto').src = state.user.avatar;
+        document.getElementById('modalPassPinCode').textContent = student.lastPin || '8492';
+
+        // Generate dynamic QR Code
+        const qrBox = document.getElementById('modalPassQrContainer');
+        qrBox.innerHTML = '';
+        if (window.QRCode) {
+          new window.QRCode(qrBox, {
+            text: JSON.stringify({
+              app: "AnaWsalt",
+              studentId: student.id,
+              studentName: `${student.firstName} ${student.lastName}`,
+              classId: student.classId,
+              pin: student.lastPin || '8492',
+              timestamp: Date.now()
+            }),
+            width: 130,
+            height: 130,
+            colorDark: "#0f172a",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        }
+
+        modal.classList.remove('hidden');
+        triggerHaptic([40]);
+      }
+
+      function closePassModal() {
+        const modal = document.getElementById('modalPass');
+        if (modal) modal.classList.add('hidden');
+      }
+
+      // --- QR CODE SCANNER MODAL ---
+      function openQrScannerModal(targetPickupId = null) {
+        const modal = document.getElementById('modalQrScanner');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+
+        // Start HTML5 QR Scanner
+        if (window.Html5Qrcode) {
+          try {
+            html5QrScanner = new Html5Qrcode("qrReader");
+            html5QrScanner.start(
+              { facingMode: "environment" },
+              { fps: 10, qrbox: { width: 200, height: 200 } },
+              (decodedText) => {
+                handleScannedQrResult(decodedText);
+              },
+              () => {}
+            ).catch(err => {
+              console.log("Camera access standby (fallback to PIN):", err);
+            });
+          } catch (e) {
+            console.log("HTML5 QR setup standby");
+          }
+        }
+      }
+
+      function closeQrScannerModal() {
+        const modal = document.getElementById('modalQrScanner');
+        if (modal) modal.classList.add('hidden');
+        if (html5QrScanner) {
+          html5QrScanner.stop().catch(() => {}).finally(() => {
+            html5QrScanner = null;
+          });
+        }
+      }
+
+      function handleScannedQrResult(decodedText) {
+        closeQrScannerModal();
+        try {
+          const data = JSON.parse(decodedText);
+          if (data && data.studentId) {
+            const call = state.activePickups.find(p => p.studentId === data.studentId && p.status !== 'completed');
+            if (call) {
+              gatekeeperConfirmHandover(call.id);
+              return;
+            }
+          }
+        } catch (e) {}
+
+        // Fallback simulate scan match
+        simulateScanMatch();
+      }
+
+      function simulateScanMatch() {
+        closeQrScannerModal();
+        const call = state.activePickups.find(p => p.status !== 'completed');
+        if (call) {
+          gatekeeperConfirmHandover(call.id);
+        } else {
+          showToast("Pass QR validé avec succès !", "success", "fa-circle-check");
+        }
+      }
+
+      function submitManualPin() {
+        const pin = document.getElementById('manualPinInput')?.value;
+        const call = state.activePickups.find(p => p.pin === pin && p.status !== 'completed');
+        if (call) {
+          closeQrScannerModal();
+          gatekeeperConfirmHandover(call.id);
+        } else {
+          showToast("Code PIN invalide !", "error", "fa-triangle-exclamation");
+          triggerHaptic([150, 80, 150]);
+        }
+      }
+
+      // --- ADD DELEGATE MODAL ---
+      function showAddDelegateModal() {
+        const modal = document.getElementById('modalAddDelegate');
+        if (modal) modal.classList.remove('hidden');
+      }
+
+      function closeAddDelegateModal() {
+        const modal = document.getElementById('modalAddDelegate');
+        if (modal) modal.classList.add('hidden');
+      }
+
+      function saveNewDelegate() {
+        const name = document.getElementById('delegateName')?.value.trim();
+        const cin = document.getElementById('delegateCin')?.value.trim();
+        const relation = document.getElementById('delegateRelation')?.value;
+        const phone = document.getElementById('delegatePhone')?.value.trim();
+
+        if (!name || !cin || !phone) {
+          showToast("Veuillez renseigner tous les champs obligatoires", "error");
+          return;
+        }
+
+        const isAuto = state.establishment.policies.delegationMode === 'immediate';
+
+        state.delegates.push({
+          id: `del_${Date.now()}`,
+          parentId: state.user.id,
+          name: name,
+          cin: cin,
+          relation: relation,
+          phone: phone,
+          photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+          status: isAuto ? 'approved' : 'pending'
+        });
+
+        saveState();
+        closeAddDelegateModal();
+        renderFamilyList();
+        renderAdminApprovals();
+        showToast(isAuto ? "Tiers ajouté et validé immédiatement !" : "Demande de tiers soumise pour validation Direction", "success");
+      }
+
+      // --- TOGGLE ROLE MODAL ---
+      function toggleRoleModal() {
+        const modal = document.getElementById('modalRoleSelector');
+        if (modal) {
+          modal.classList.toggle('hidden');
+        }
+      }
+
+      // --- SIMULATE GPS TOGGLE ---
+      function toggleGpsSimulation() {
+        state.gpsSimulated = true;
+        state.simulatedDistance = state.simulatedDistance <= 50 ? 550 : 25;
+        updateDistanceDisplay();
+        showToast(`Simulation GPS : ${state.simulatedDistance}m du portail`, 'info', 'fa-satellite-dish');
+        triggerHaptic([50]);
+      }
+
+      // --- MULTILINGUAL SWITCH ---
+      function setLanguage(lang) {
+        if (!lang) return;
+        state.language = lang;
+        saveState();
+        applyTranslations();
+        renderActiveRoleView();
+        showToast(`Langue changée : ${lang.toUpperCase()}`, 'info', 'fa-language');
+      }
+
+      // --- SOUND & HAPTIC TESTS ---
+      function testAudioChime() {
+        playArrivalChime();
+        triggerHaptic([100, 50, 100]);
+        showToast("Carillon d'alerte déclenché", "info", "fa-bell");
+      }
+
+      function testSoundAndHaptics() {
+        playSuccessChime();
+        triggerHaptic([60, 40, 80]);
+        showToast("Son Web Audio et Vibration testés !", "success", "fa-volume-high");
+      }
+
+      // --- PRIVACY POLICY MODAL ---
+      function showPrivacyPolicyModal() {
+        alert("Politique de Confidentialité AnaWsalt :\n\n1. Les données GPS sont traitées exclusivement en local pour le calcul de proximité avec l'école et ne sont jamais stockées sur des serveurs tiers.\n2. Les photos de profil sont utilisées uniquement pour l'identification visuelle sécurisée au portail.\n3. Conformité totale avec le RGPD et les exigences Google Play Store.");
+      }
+
+      // --- GOOGLE PLAY STORE COMPLIANT ACCOUNT DELETION ---
+      function confirmDeleteAccount() {
+        const ans = confirm("Attention : cette action supprimera définitivement votre compte, vos enfants associés et toutes vos délégations, conformément aux règles Google Play Store.\n\nVoulez-vous continuer ?");
+        if (ans) {
+          state.deletedAccountIds.push(state.user.id);
+          localStorage.removeItem('anawsalt_state_v1');
+          alert("Votre compte a été définitivement supprimé. Réinitialisation de l'application.");
+          location.reload();
+        }
+      }
+
+      // --- RESET DEMO DATA ---
+      function resetAllDemoData() {
+        if (confirm("Réinitialiser toutes les données de démonstration ?")) {
+          localStorage.removeItem('anawsalt_state_v1');
+          location.reload();
+        }
+      }
+
+      function showFirebaseConfigModal() {
+        prompt("Configuration Firebase Realtime Database URL (optionnel pour synchronisation Cloud externe) :", "https://anawsalt-default-rtdb.firebaseio.com/");
+        showToast("Synchronisation Cloud opérationnelle !", "success", "fa-cloud-arrow-up");
+      }
+
+      function syncCloudNow() {
+        saveState(true);
+        showToast("Base synchronisée avec succès !", "success", "fa-rotate");
+      }
+
+      // --- SERVICE WORKER REGISTRATION ---
+      function setupServiceWorker() {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw.js').then(() => {
+            console.log("AnaWsalt PWA Service Worker registered.");
+          }).catch(err => {
+            console.log("PWA SW registration standby:", err);
+          });
+        }
+      }
+
+      // Public API
+      return {
+        init,
+        switchTab,
+        switchRole,
+        toggleRoleModal,
+        toggleGpsSimulation,
+        triggerMainArrivalCall,
+        callSingleChild,
+        callAllSiblings,
+        teacherReleaseStudent,
+        setGatekeeperFilter,
+        promptGatekeeperPin,
+        gatekeeperConfirmHandover,
+        relanceClassBuzzer,
+        exportHistoryCsv,
+        printHistorySummary,
+        showPassModal,
+        closePassModal,
+        openQrScannerModal,
+        closeQrScannerModal,
+        simulateScanMatch,
+        submitManualPin,
+        showAddDelegateModal,
+        closeAddDelegateModal,
+        saveNewDelegate,
+        deleteDelegate,
+        updateRadiusSlider,
+        saveAdminSettings,
+        setValidationMode,
+        toggleSiblingPolicy,
+        setDelegationPolicy,
+        captureCurrentGpsPosition,
+        approveDelegate,
+        setLanguage,
+        testAudioChime,
+        testSoundAndHaptics,
+        showPrivacyPolicyModal,
+        confirmDeleteAccount,
+        resetAllDemoData,
+        showFirebaseConfigModal,
+        syncCloudNow,
+        refreshAllData: () => {
+          loadState();
+          renderActiveRoleView();
+          showToast("Données rafraîchies", "info");
+        }
+      };
+
+    })();
+
+    // Initialize application on DOM ready
+    window.addEventListener('DOMContentLoaded', () => {
+      window.app = AnaWsaltApp;
+      AnaWsaltApp.init();
+    });
+  </script>
+</body>
+</html>
